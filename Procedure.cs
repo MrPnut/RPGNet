@@ -53,6 +53,11 @@ namespace RPGNet
         {
             ILCode.Add(IL);
         }
+        public void addNot()
+        {
+            addIL("ldc.i4.0");
+            addIL("ceq");
+        }
 
         public String[] getIL()
         {
@@ -110,22 +115,31 @@ namespace RPGNet
                         OP = Token.getValue();
                         break;
                     default:
+                        loadItem(Token);
                         switch (OP)
                         {
                             case "=":
+                                addIL("ceq");
                                 break;
                             case "<>":
+                                addIL("ceq");
+                                addNot();
                                 break;
                             case ">":
+                                addIL("cgt");
                                 break;
                             case ">=":
+                                addIL("clt");
+                                addNot();
                                 break;
                             case "<":
+                                addIL("clt");
                                 break;
                             case "<=":
+                                addIL("cgt");
+                                addNot();
                                 break;
                             case "+":
-                                loadItem(Token);
                                 if (this.getVarType(Token.getValue()) == Piece.Type.Varchar || Token.getInstance() == Piece.Type.Varchar)
                                 {
                                     addIL("call string [mscorlib]System.String::Concat(string, string)");
@@ -136,19 +150,15 @@ namespace RPGNet
                                 }
                                 break;
                             case "-":
-                                loadItem(Token);
                                 addIL("sub");
                                 break;
                             case "*":
-                                loadItem(Token);
                                 addIL("mul");
                                 break;
                             case "/":
-                                loadItem(Token);
                                 addIL("div");
                                 break;
                             default:
-                                loadItem(Token);
                                 break;
                         }
                         break;
