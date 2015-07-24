@@ -18,6 +18,8 @@ namespace RPGNet
                     return "float64";
                 case Piece.Type.Varchar:
                     return "string";
+                case Piece.Type.Indicator:
+                    return "bool";
             }
             return "void";
         }

@@ -58,6 +58,17 @@ namespace RPGNet
             addIL("ldc.i4.0");
             addIL("ceq");
         }
+        public void addGoto(String GOTO = "")
+        {
+            if (GOTO != "")
+            {
+                addIL(GOTO + ":");
+            }
+            else
+            {
+                addIL(Module.getScope() + ":");
+            }
+        }
 
         public String[] getIL()
         {
@@ -95,14 +106,17 @@ namespace RPGNet
 
         public void Expression(Piece[] In)
         {
-            String Out = "";
+            Boolean NOT = false;
             String OP = "";
 
             foreach (Piece Token in In)
             {
                 switch (Token.getValue())
                 {
-                    case "==":
+                    case "NOT":
+                        NOT = !NOT;
+                        break;
+                    case "=":
                     case "!=":
                     case ">":
                     case "<":
@@ -164,11 +178,23 @@ namespace RPGNet
                         break;
                 }
             }
+            if (NOT) addNot();
         }
         public String loadItem(Piece Item)
         {
             switch (Item.getInstance())
             {
+                case Piece.Type.Indicator:
+                    switch (Item.getValue().ToUpper())
+                    {
+                        case "*ON":
+                            addIL("ldc.i4 1");
+                            break;
+                        case "*OFF":
+                            addIL("ldc.i4 0");
+                            break;
+                    }
+                    break;
                 case Piece.Type.Int:
                     addIL("ldc.i4 " + Item.getValue());
                     break;

@@ -8,10 +8,10 @@ namespace RPGNet
 {
     class Piece
     {
-        public static String[] Operators = { "+", "-", "/", "*", "=", "<>", ">", "<", ">=", "<=" };
+        public static String[] Operators = { "+", "-", "/", "*", "=", "<>", ">", "<", ">=", "<=", "NOT" };
         public enum Type
         {
-            Operator, BIF, Procedure, Variable, Varchar, Packed, Int, Void
+            Operator, BIF, Procedure, Variable, Varchar, Packed, Int, Indicator, Void
         }
         public static Type getType(String In)
         {
@@ -25,6 +25,8 @@ namespace RPGNet
                     return Type.Int;
                 case "PACKED":
                     return Type.Packed;
+                case "IND":
+                    return Type.Indicator;
             }
             return Type.Void;
         }
@@ -79,6 +81,10 @@ namespace RPGNet
                     if (Val.EndsWith(")"))
                     {
                         _Type = Type.Procedure;
+                    }
+                    else if (Val.StartsWith("*"))
+                    {
+                        _Type = Type.Indicator;
                     }
                     else
                     {

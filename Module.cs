@@ -18,11 +18,26 @@ namespace RPGNet
             return Program_Name;
         }
 
+        public static List<String> Labels = new List<String>();
+        private static int Scope = 0;
+        public static String getScope()
+        {
+            return "SCOPE" + Scope.ToString();
+        }
+        public static String getLastScope()
+        {
+            String Out = Labels[Labels.Count - 1];
+            Labels.RemoveAt(Labels.Count - 1);
+            return Out;
+        }
+        
         public static void Run(String Name, String Code)
         {
             Program_Name = Name; 
             Procedure Proc = null;
             Piece[] Pieces;
+            Piece[] Build;
+            String forElse;
             foreach (String Part in Interpreter.toParts(Code))
             {
                 Pieces = Interpreter.getPieces(Part);
@@ -57,12 +72,41 @@ namespace RPGNet
                         Proc.addIL("call string [mscorlib]System.Console::ReadLine()");
                         break;
 
+                    case "IF":
+                        Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
+                        Proc.Expression(Build);
+
+                        Labels.Add(getScope());
+                        Proc.addIL("brfalse.s " + getScope());
+                        Scope++;
+                        break;
+                    case "ELSE":
+                        forElse = getLastScope();
+
+                        Labels.Add(getScope()); 
+                        Proc.addIL("br.s " + getScope()); Scope++;
+
+                        Proc.addGoto(forElse);
+                        break;
+                    case "ELSEIF":
+                        forElse = getLastScope();
+
+                        Labels.Add(getScope());
+                        Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
+                        Proc.Expression(Build);
+                        Proc.addIL("brfalse.s " + getScope()); Scope++;
+
+                        Proc.addGoto(forElse);
+                        break;
+                    case "ENDIF":
+                        Proc.addGoto(getLastScope()); Scope++;
+                        break;
                     default:
                         if (Pieces.Length > 1)
                         {
                             if (Pieces[1].getInstance() != Piece.Type.Operator) continue;
                             if (Pieces[0].getInstance() != Piece.Type.Variable) continue;
-                            Proc.Expression(Interpreter.StringBuilder(Pieces, 1, Pieces.Length));
+                            Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length));
                             Proc.addIL("stloc " + Pieces[0].getValue());
                         }
                         break;
