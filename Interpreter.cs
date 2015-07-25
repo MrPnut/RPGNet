@@ -23,8 +23,8 @@ namespace RPGNet
                 else if (Line.StartsWith("/COPY"))
                 {
                     Line = Line.Substring(5).Trim();
-                    Console.WriteLine(Line);
                     Output.Add(getContent(Line));
+                    Errors.throwNotice("Copied in " + Line);
                 }
                 else
                 {

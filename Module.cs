@@ -20,17 +20,16 @@ namespace RPGNet
             if (Procedures.ContainsKey(Name))
             {
                 Procedures[Name] = Proc;
-                Console.WriteLine("REPLACED " + Name);
+                Errors.throwNotice("Procedure replaced (using my procedure definition): " + Name);
             }
             else
             {
                 Procedures.Add(Name, Proc);
-                Console.WriteLine("ADDED " + Name);
+                Errors.throwNotice("Procedure added: " + Name);
             }
         }
         public static Procedure getProcedure(String Name)
         {
-            Console.WriteLine("Checking " + Name);
             if (Procedures.ContainsKey(Name))
             {
                 return Procedures[Name];
@@ -38,7 +37,7 @@ namespace RPGNet
             else
             {
                 //Error
-                Console.WriteLine("PROCEDURE IS NULL");
+                Errors.throwNotice("Trying to load unknown procedure: " + Name);
                 return null;
             }
         }
@@ -110,8 +109,6 @@ namespace RPGNet
                         break;
                     case "DCL-PARM": //DCL-PARM NAME, VALUE
                         //Also used for PR
-                        Console.WriteLine("Err: " + Pieces[1].getValue());
-                        Console.WriteLine("Err: " + Pieces[2].getValue());
                         Proc.addParam(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
                         break;
                     case "END-PI":
@@ -219,7 +216,6 @@ namespace RPGNet
                         {
                             if (Pieces[1].getInstance() != Piece.Type.Operator) continue;
                             if (Pieces[0].getInstance() != Piece.Type.Variable) continue;
-                            Console.WriteLine(Pieces[0].getInstance().ToString() + " = " + Pieces[0].getValue());
                             Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length), (Proc.getVarType(Pieces[0].getValue()) == Piece.Type.Varchar));
                             Proc.storeItem(Pieces[0].getValue());
                         }

@@ -61,9 +61,11 @@ namespace RPGNet
             }
             else
             {
+                Errors.throwNotice("Trying to find type of an unknown variable: " + Name);
                 return Piece.Type.Void;
             }
         }
+
         public void addIL(String IL)
         {
             ILCode.Add(IL);
@@ -201,7 +203,6 @@ namespace RPGNet
             foreach (String Parm in InsideBrackets.Split(':'))
             {
                 if (Parm.Trim() != "") Pieces.Add(new Piece(Parm));
-                Console.WriteLine(Parm);
             }
 
             addIL("// " + Name + "(" + InsideBrackets + ") ---------");
@@ -236,6 +237,9 @@ namespace RPGNet
                     loadItem(Pieces[0]);
                     addIL("call float64 [mscorlib]System.Convert::ToDouble(string)");
                     break;
+                default:
+                    Errors.throwError("Calling unknown built-in function: " + Name);
+                    break;
             }
             addIL("// ---------------");
         }
@@ -246,6 +250,7 @@ namespace RPGNet
             if (Calling == null)
             {
                 addIL("call void " + Module.getName() + ".Program::" + Name + " ()");
+                Errors.throwNotice(Name + " is assumed to exist, as no prototype or procedure is defined yet.");
             }
             else
             {
@@ -270,9 +275,13 @@ namespace RPGNet
             {
                 addIL("stsfld " + Module.getGlobalTypeCIL(Var) + " " + Module.getName() + ".Program::" + Var);
             }
-            else
+            else if (Variables.ContainsKey(Var))
             {
                 addIL("stloc " + Var);
+            }
+            else
+            {
+                Errors.throwError("Trying to store in an unknown variable: " + Var);
             }
         }
         public String loadItem(Piece Item)
@@ -313,6 +322,10 @@ namespace RPGNet
                     else if (Module.globalExists(Item.getValue()))
                     {
                         addIL("ldsfld " + Module.getGlobalTypeCIL(Item.getValue()) + " " + Module.getName() + ".Program::" + Item.getValue());
+                    }
+                    else
+                    {
+                        Errors.throwNotice("Trying to find an unknown variable: " + Item.getValue() + ".");
                     }
                     break;
                 case Piece.Type.Procedure: //Will pass in Procedure(etc)

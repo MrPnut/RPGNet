@@ -20,8 +20,12 @@ namespace RPGNet
                     return "string";
                 case Piece.Type.Indicator:
                     return "bool";
+                case Piece.Type.Void:
+                    return "void";
+                default:
+                    Errors.throwNotice("Found an unknown return type for CIL: " + Type.ToString());
+                    return "void";
             }
-            return "void";
         }
     }
 }

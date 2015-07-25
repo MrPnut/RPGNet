@@ -27,8 +27,10 @@ namespace RPGNet
                     return Type.Packed;
                 case "IND":
                     return Type.Indicator;
+                default:
+                    Errors.throwNotice("Unknown RPG type: " + In);
+                    return Type.Void;
             }
-            return Type.Void;
         }
 
         private String _Value;
@@ -101,6 +103,10 @@ namespace RPGNet
                     {
                         _Type = Type.Int;
                     }
+                }
+                else
+                {
+                    Errors.throwError("Unknown piece found: " + Val);
                 }
             }
             _Value = Val;

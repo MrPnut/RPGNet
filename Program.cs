@@ -19,10 +19,6 @@ namespace RPGNet
             String Compiler = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\ilasm.exe";
             
             Module.Run(Name, Code);
-            foreach (String Line in Module.getCode())
-            {
-                Console.WriteLine(Line);
-            }
             File.WriteAllLines(Name + ".il", Module.getCode());
             Process.Start(Compiler, '"' + Environment.CurrentDirectory + "\\" + Name + '"');
             Console.ReadLine();
