@@ -50,9 +50,13 @@ namespace RPGNet
         {
             return Globals.ContainsKey(Name);
         }
-        public static string getGlobalType(String Name)
+        public static string getGlobalTypeCIL(String Name)
         {
             return RPG.getCILType(Globals[Name]);
+        }
+        public static Piece.Type getGlobalType(String Name)
+        {
+            return Globals[Name];
         }
         public static void addGlobal(String Name, Piece.Type Type)
         {
@@ -215,7 +219,8 @@ namespace RPGNet
                         {
                             if (Pieces[1].getInstance() != Piece.Type.Operator) continue;
                             if (Pieces[0].getInstance() != Piece.Type.Variable) continue;
-                            Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length));
+                            Console.WriteLine(Pieces[0].getInstance().ToString() + " = " + Pieces[0].getValue());
+                            Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length), (Proc.getVarType(Pieces[0].getValue()) == Piece.Type.Varchar));
                             Proc.storeItem(Pieces[0].getValue());
                         }
                         break;

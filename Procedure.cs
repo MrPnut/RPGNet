@@ -55,9 +55,13 @@ namespace RPGNet
             {
                 return Variables[Name];
             }
+            else if (Module.globalExists(Name))
+            {
+                return Module.getGlobalType(Name);
+            }
             else
             {
-                return Piece.Type.Int;
+                return Piece.Type.Void;
             }
         }
         public void addIL(String IL)
@@ -115,7 +119,7 @@ namespace RPGNet
             return Out.ToArray();
         }
 
-        public void Expression(Piece[] In)
+        public void Expression(Piece[] In, Boolean Varchar = false)
         {
             Boolean NOT = false;
             String OP = "";
@@ -165,7 +169,7 @@ namespace RPGNet
                                 addNot();
                                 break;
                             case "+":
-                                if (this.getVarType(Token.getValue()) == Piece.Type.Varchar || Token.getInstance() == Piece.Type.Varchar)
+                                if (Varchar)
                                 {
                                     addIL("call string [mscorlib]System.String::Concat(string, string)");
                                 }
@@ -191,11 +195,63 @@ namespace RPGNet
             }
             if (NOT) addNot();
         }
+        public void doBIF(String Name, String InsideBrackets)
+        {
+            List<Piece> Pieces = new List<Piece>();
+            foreach (String Parm in InsideBrackets.Split(':'))
+            {
+                if (Parm.Trim() != "") Pieces.Add(new Piece(Parm));
+                Console.WriteLine(Parm);
+            }
+
+            addIL("//" + Name + "(" + InsideBrackets + ")");
+            Name = Name.Substring(1); //Rid of the %
+            switch (Name.ToUpper())
+            {
+                case "CHAR":
+                    loadItem(Pieces[0]);
+                    switch (Pieces[0].getInstance())
+                    {
+                        case Piece.Type.Variable:
+                            addIL("call string [mscorlib]System.Convert::ToString(" + RPG.getCILType(getVarType(Pieces[0].getValue())) + ")");
+                            break;
+                        default:
+                            addIL("call string [mscorlib]System.Convert::ToString(" + RPG.getCILType(Pieces[0].getInstance()) + ")");
+                            break;
+                    }
+                    break;
+            }
+        }
+        public void callProc(String Name, String InsideBrackets) 
+        {
+            Procedure Calling = Module.getProcedure(Name);
+
+            if (Calling == null)
+            {
+                addIL("call void " + Module.getName() + ".Program::" + Name + " ()");
+            }
+            else
+            {
+                foreach (String Parm in InsideBrackets.Split(':'))
+                {
+                    loadItem(new Piece(Parm));
+                }
+
+                addIL("call " + RPG.getCILType(Module.getProcedure(Name).ReturnType) + " " + Module.getName() + ".Program::" + Name + " (");
+                List<String> Params = new List<String>();
+                foreach (Piece.Type Param in Module.getProcedure(Name).getParams())
+                {
+                    Params.Add(RPG.getCILType(Param));
+                }
+                addIL(String.Join(", ", Params));
+                addIL(")");
+            }
+        }
         public void storeItem(String Var) //Will accept globals
         {
             if (Module.globalExists(Var))
             {
-                addIL("stsfld " + Module.getGlobalType(Var) + " " + Module.getName() + ".Program::" + Var);
+                addIL("stsfld " + Module.getGlobalTypeCIL(Var) + " " + Module.getName() + ".Program::" + Var);
             }
             else
             {
@@ -239,7 +295,7 @@ namespace RPGNet
                     }
                     else if (Module.globalExists(Item.getValue()))
                     {
-                        addIL("ldsfld " + Module.getGlobalType(Item.getValue()) + " " + Module.getName() + ".Program::" + Item.getValue());
+                        addIL("ldsfld " + Module.getGlobalTypeCIL(Item.getValue()) + " " + Module.getName() + ".Program::" + Item.getValue());
                     }
                     break;
                 case Piece.Type.Procedure: //Will pass in Procedure(etc)
@@ -248,32 +304,19 @@ namespace RPGNet
                     Start = Value.IndexOf('(') + 1;
                     End = Value.LastIndexOf(')');
                     InsideBrackets = Item.getValue().Substring(Start, int.Parse(Math.Abs(Start - End).ToString())).Trim();
-                    Name = Value.Substring(0, Value.IndexOf('('));
+                    Name = Value.Substring(0, Value.IndexOf('(')).Trim();
 
-                    Procedure Calling = Module.getProcedure(Name);
-
-                    if (Calling == null)
-                    {
-                        addIL("call void " + Module.getName() + ".Program::" + Name + " ()");
-                    }
-                    else
-                    {
-                        foreach (String Parm in InsideBrackets.Split(':'))
-                        {
-                            loadItem(new Piece(Parm));
-                        }
-
-                        addIL("call " + RPG.getCILType(Module.getProcedure(Name).ReturnType) + " " + Module.getName() + ".Program::" + Name + " (");
-                        List<String> Params = new List<String>();
-                        foreach (Piece.Type Param in Module.getProcedure(Name).getParams())
-                        {
-                            Params.Add(RPG.getCILType(Param));
-                        }
-                        addIL(String.Join(", ", Params));
-                        addIL(")");
-                    }
+                    callProc(Name, InsideBrackets);
                     break;
                 case Piece.Type.BIF:
+                    Value = Item.getValue();
+
+                    Start = Value.IndexOf('(') + 1;
+                    End = Value.LastIndexOf(')');
+                    InsideBrackets = Item.getValue().Substring(Start, int.Parse(Math.Abs(Start - End).ToString())).Trim();
+                    Name = Value.Substring(0, Value.IndexOf('(')).Trim();
+
+                    doBIF(Name, InsideBrackets);
                     break;
             }
             return "";
