@@ -12,11 +12,19 @@ namespace RPGNet
         public static String getContent(String FileLoc)
         {
             List<String> Output = new List<String>();
-            foreach (String Line in File.ReadAllLines(FileLoc))
+            String Line = "";
+            foreach (String L in File.ReadAllLines(FileLoc))
             {
-                if (Line.Trim().StartsWith("*") || Line.Trim().StartsWith("//"))
+                Line = L.Trim();
+                if (Line.StartsWith("*") || Line.Trim().StartsWith("//"))
                 {
-
+                    //Do nothing..
+                }
+                else if (Line.StartsWith("/COPY"))
+                {
+                    Line = Line.Substring(5).Trim();
+                    Console.WriteLine(Line);
+                    Output.Add(getContent(Line));
                 }
                 else
                 {
