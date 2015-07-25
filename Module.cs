@@ -148,6 +148,25 @@ namespace RPGNet
                         Proc.addGoto(getLastScope()); Scope++;
                         break;
 
+                    case "DOW": //Dow Expression
+                        Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
+
+                        Proc.addGoto(getScope());
+                        Labels.Add(getScope());
+                        Scope++;
+
+                        Proc.Expression(Build);
+                        Proc.addIL("brfalse.s " + getScope()); //If false
+
+
+                        break;
+                    case "ENDDO":
+                        Proc.addIL("br.s " + getLastScope());
+                        Proc.addGoto(getScope());
+                        Labels.Add(getScope());
+                        Scope++;
+                        break;
+
                     default:
                         if (Pieces.Length > 1)
                         {
