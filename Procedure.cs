@@ -204,7 +204,7 @@ namespace RPGNet
                 Console.WriteLine(Parm);
             }
 
-            addIL("//" + Name + "(" + InsideBrackets + ")");
+            addIL("// " + Name + "(" + InsideBrackets + ") ---------");
             Name = Name.Substring(1); //Rid of the %
             switch (Name.ToUpper())
             {
@@ -220,7 +220,24 @@ namespace RPGNet
                             break;
                     }
                     break;
+                case "INT":
+                    loadItem(Pieces[0]);
+                    switch (Pieces[0].getInstance())
+                    {
+                        case Piece.Type.Variable:
+                            addIL("call int32 [mscorlib]System.Convert::ToInt32(" + RPG.getCILType(getVarType(Pieces[0].getValue())) + ")");
+                            break;
+                        default:
+                            addIL("call int32 [mscorlib]System.Convert::ToInt32(string)");
+                            break;
+                    }
+                    break;
+                case "DEC":
+                    loadItem(Pieces[0]);
+                    addIL("call float64 [mscorlib]System.Convert::ToDouble(string)");
+                    break;
             }
+            addIL("// ---------------");
         }
         public void callProc(String Name, String InsideBrackets) 
         {
@@ -255,7 +272,7 @@ namespace RPGNet
             }
             else
             {
-                addIL("stloc  " + Var);
+                addIL("stloc " + Var);
             }
         }
         public String loadItem(Piece Item)
