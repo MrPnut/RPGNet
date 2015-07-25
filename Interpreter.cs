@@ -3,11 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace RPGNet
 {
     class Interpreter
     {
+        public static String getContent(String FileLoc)
+        {
+            List<String> Output = new List<String>();
+            foreach (String Line in File.ReadAllLines(FileLoc))
+            {
+                if (Line.Trim().StartsWith("*") || Line.Trim().StartsWith("//"))
+                {
+
+                }
+                else
+                {
+                    Output.Add(Line);
+                }
+            }
+            return String.Join(" ", Output);
+        } 
         public static String[] toParts(String In)
         {
             List<String> Parts = new List<String>();

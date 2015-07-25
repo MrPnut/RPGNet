@@ -31,10 +31,21 @@ namespace RPGNet
         {
             ReturnType = Type;
         }
+
         public void addParam(String Name, Piece.Type Type)
         {
             Parameters.Add(Name, Type);
         }
+        public Piece.Type[] getParams()
+        {
+            List<Piece.Type> Out = new List<Piece.Type>();
+            foreach (var Param in Parameters)
+            {
+                Out.Add(Param.Value);
+            }
+            return Out.ToArray();
+        }
+
         public void addVariable(String Name, Piece.Type Type)
         {
             Variables.Add(Name, Type);
@@ -193,6 +204,8 @@ namespace RPGNet
         }
         public String loadItem(Piece Item)
         {
+            String Value = "", Name = "", InsideBrackets = "";
+            int Start, End;
             switch (Item.getInstance())
             {
                 case Piece.Type.Indicator:
@@ -229,7 +242,36 @@ namespace RPGNet
                         addIL("ldsfld " + Module.getGlobalType(Item.getValue()) + " " + Module.getName() + ".Program::" + Item.getValue());
                     }
                     break;
-                case Piece.Type.Procedure:
+                case Piece.Type.Procedure: //Will pass in Procedure(etc)
+                    Value = Item.getValue();
+
+                    Start = Value.IndexOf('(') + 1;
+                    End = Value.LastIndexOf(')');
+                    InsideBrackets = Item.getValue().Substring(Start, int.Parse(Math.Abs(Start - End).ToString())).Trim();
+                    Name = Value.Substring(0, Value.IndexOf('('));
+
+                    Procedure Calling = Module.getProcedure(Name);
+
+                    if (Calling == null)
+                    {
+                        addIL("call void " + Module.getName() + ".Program::" + Name + " ()");
+                    }
+                    else
+                    {
+                        foreach (String Parm in InsideBrackets.Split(':'))
+                        {
+                            loadItem(new Piece(Parm));
+                        }
+
+                        addIL("call " + RPG.getCILType(Module.getProcedure(Name).ReturnType) + " " + Module.getName() + ".Program::" + Name + " (");
+                        List<String> Params = new List<String>();
+                        foreach (Piece.Type Param in Module.getProcedure(Name).getParams())
+                        {
+                            Params.Add(RPG.getCILType(Param));
+                        }
+                        addIL(String.Join(", ", Params));
+                        addIL(")");
+                    }
                     break;
                 case Piece.Type.BIF:
                     break;

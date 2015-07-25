@@ -17,7 +17,30 @@ namespace RPGNet
         #region Procedure methods
         private static Dictionary<String, Procedure> Procedures = new Dictionary<String, Procedure>();
         public static void addProcedure(String Name, Procedure Proc) {
-            Procedures.Add(Name, Proc);
+            if (Procedures.ContainsKey(Name))
+            {
+                Procedures[Name] = Proc;
+                Console.WriteLine("REPLACED " + Name);
+            }
+            else
+            {
+                Procedures.Add(Name, Proc);
+                Console.WriteLine("ADDED " + Name);
+            }
+        }
+        public static Procedure getProcedure(String Name)
+        {
+            Console.WriteLine("Checking " + Name);
+            if (Procedures.ContainsKey(Name))
+            {
+                return Procedures[Name];
+            }
+            else
+            {
+                //Error
+                Console.WriteLine("PROCEDURE IS NULL");
+                return null;
+            }
         }
         #endregion
 
@@ -66,6 +89,15 @@ namespace RPGNet
                 if (Proc != null) Proc.addIL("//" + Part);
                 switch (Pieces[0].getValue().ToUpper())
                 {
+                    case "DCL-PR": //DCL-PR Procname ReturnType
+                        Proc = new Procedure(Pieces[1].getValue());
+                        Proc.setReturn(Piece.getType(Pieces[2].getValue()));
+                        break;
+                    case "END-PR":
+                        addProcedure(Proc.getName(), Proc);
+                        Proc = null;
+                        break;
+
                     case "DCL-PROC": //Dcl-Proc Name
                         Proc = new Procedure(Pieces[1].getValue());
                         break;
@@ -73,9 +105,13 @@ namespace RPGNet
                         Proc.setReturn(Piece.getType(Pieces[2].getValue()));
                         break;
                     case "DCL-PARM": //DCL-PARM NAME, VALUE
+                        //Also used for PR
+                        Console.WriteLine("Err: " + Pieces[1].getValue());
+                        Console.WriteLine("Err: " + Pieces[2].getValue());
                         Proc.addParam(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
                         break;
                     case "END-PI":
+                        //Has no real use :(
                         break;
                     case "DCL-S": //DCL-S NAME TYPE
                         if (Proc != null)
@@ -86,6 +122,11 @@ namespace RPGNet
                         {
                             addGlobal(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
                         }
+                        break;
+                    case "RETURN":
+                        Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
+                        Proc.Expression(Build);
+                        Proc.addIL("ret");
                         break;
                     case "END-PROC":
                         addProcedure(Proc.getName(), Proc);
@@ -148,7 +189,7 @@ namespace RPGNet
                         Proc.addGoto(getLastScope()); Scope++;
                         break;
 
-                    case "DOW": //Dow Expression
+                    case "DOW":
                         Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
 
                         Proc.addGoto(getScope());
@@ -156,15 +197,17 @@ namespace RPGNet
                         Scope++;
 
                         Proc.Expression(Build);
-                        Proc.addIL("brfalse.s " + getScope()); //If false
-
-
+                        Proc.addIL("brfalse.s " + getScope());
                         break;
                     case "ENDDO":
                         Proc.addIL("br.s " + getLastScope());
                         Proc.addGoto(getScope());
                         Labels.Add(getScope());
                         Scope++;
+                        break;
+
+                    case "CALLP":
+                        Proc.loadItem(Pieces[1]);
                         break;
 
                     default:

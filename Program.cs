@@ -14,7 +14,7 @@ namespace RPGNet
         {
             String CodeFile = String.Join(" ", args);
             if (CodeFile == "") return;
-            String Code = File.ReadAllText(CodeFile);
+            String Code = Interpreter.getContent(CodeFile);
             String Name = new FileInfo(CodeFile).Name; Name = Name.Substring(0, Name.LastIndexOf('.'));
             String Compiler = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\ilasm.exe";
             
