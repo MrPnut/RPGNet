@@ -72,6 +72,23 @@ namespace RPGNet
                         Proc.addIL("call string [mscorlib]System.Console::ReadLine()");
                         break;
 
+                    case "SELECT":
+                        Labels.Add(getScope());
+                        Scope++;
+                        break;
+                    case "WHEN":
+                        forElse = getLastScope();
+
+                        Labels.Add(getScope());
+                        Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
+                        Proc.Expression(Build);
+                        Proc.addIL("brfalse.s " + getScope()); Scope++;
+
+                        Proc.addGoto(forElse);
+                        break;
+                    case "ENDSEL":
+                        Proc.addGoto(getLastScope()); Scope++;
+                        break;
                     case "IF":
                         Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
                         Proc.Expression(Build);
