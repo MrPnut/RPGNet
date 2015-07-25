@@ -180,6 +180,17 @@ namespace RPGNet
             }
             if (NOT) addNot();
         }
+        public void storeItem(String Var) //Will accept globals
+        {
+            if (Module.globalExists(Var))
+            {
+                addIL("stsfld " + Module.getGlobalType(Var) + " " + Module.getName() + ".Program::" + Var);
+            }
+            else
+            {
+                addIL("stloc  " + Var);
+            }
+        }
         public String loadItem(Piece Item)
         {
             switch (Item.getInstance())
@@ -212,6 +223,10 @@ namespace RPGNet
                     else if (Variables.ContainsKey(Item.getValue()))
                     {
                         addIL("ldloc " + Item.getValue());
+                    }
+                    else if (Module.globalExists(Item.getValue()))
+                    {
+                        addIL("ldsfld " + Module.getGlobalType(Item.getValue()) + " " + Module.getName() + ".Program::" + Item.getValue());
                     }
                     break;
                 case Piece.Type.Procedure:

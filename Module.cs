@@ -9,15 +9,35 @@ namespace RPGNet
     class Module
     {
         private static String Program_Name = "";
-        private static Dictionary<String, Procedure> Procedures = new Dictionary<String, Procedure>();
-        public static void addProcedure(String Name, Procedure Proc) {
-            Procedures.Add(Name, Proc);
-        }
         public static String getName()
         {
             return Program_Name;
         }
 
+        #region Procedure methods
+        private static Dictionary<String, Procedure> Procedures = new Dictionary<String, Procedure>();
+        public static void addProcedure(String Name, Procedure Proc) {
+            Procedures.Add(Name, Proc);
+        }
+        #endregion
+
+        #region Global methods
+        private static Dictionary<String, Piece.Type> Globals = new Dictionary<String,Piece.Type>();
+        public static Boolean globalExists(String Name)
+        {
+            return Globals.ContainsKey(Name);
+        }
+        public static string getGlobalType(String Name)
+        {
+            return RPG.getCILType(Globals[Name]);
+        }
+        public static void addGlobal(String Name, Piece.Type Type)
+        {
+            Globals.Add(Name, Type);
+        }
+        #endregion
+
+        #region Label methods
         public static List<String> Labels = new List<String>();
         private static int Scope = 0;
         public static String getScope()
@@ -30,7 +50,8 @@ namespace RPGNet
             Labels.RemoveAt(Labels.Count - 1);
             return Out;
         }
-        
+        #endregion
+
         public static void Run(String Name, String Code)
         {
             Program_Name = Name; 
@@ -57,7 +78,14 @@ namespace RPGNet
                     case "END-PI":
                         break;
                     case "DCL-S": //DCL-S NAME TYPE
-                        Proc.addVariable(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
+                        if (Proc != null)
+                        {
+                            Proc.addVariable(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
+                        }
+                        else
+                        {
+                            addGlobal(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
+                        }
                         break;
                     case "END-PROC":
                         addProcedure(Proc.getName(), Proc);
@@ -89,6 +117,7 @@ namespace RPGNet
                     case "ENDSEL":
                         Proc.addGoto(getLastScope()); Scope++;
                         break;
+
                     case "IF":
                         Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
                         Proc.Expression(Build);
@@ -118,13 +147,14 @@ namespace RPGNet
                     case "ENDIF":
                         Proc.addGoto(getLastScope()); Scope++;
                         break;
+
                     default:
                         if (Pieces.Length > 1)
                         {
                             if (Pieces[1].getInstance() != Piece.Type.Operator) continue;
                             if (Pieces[0].getInstance() != Piece.Type.Variable) continue;
                             Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length));
-                            Proc.addIL("stloc " + Pieces[0].getValue());
+                            Proc.storeItem(Pieces[0].getValue());
                         }
                         break;
                 }
@@ -140,6 +170,10 @@ namespace RPGNet
             Out.Add(".module " + Program_Name + ".exe");
 
             Out.Add(".class private auto ansi " + Program_Name + ".Program extends [mscorlib]System.Object {");
+            foreach (var Var in Globals)
+            {
+                Out.Add(".field private static " + RPG.getCILType(Var.Value) + " " + Var.Key);
+            }
             foreach (var Proc in Procedures)
             {
                 foreach (String Piece in Proc.Value.getIL())
