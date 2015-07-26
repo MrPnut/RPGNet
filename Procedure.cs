@@ -252,6 +252,13 @@ namespace RPGNet
                     loadItem(Pieces[0]);
                     addIL("callvirt instance int32 [mscorlib]System.String::get_Length()");
                     break;
+                case "SCAN": //%Scan(' ':String)
+                    loadItem(Pieces[1]);
+                    loadItem(Pieces[0]);
+                    addIL("callvirt instance int32 [mscorlib]System.String::IndexOf(string)");
+                    loadItem(new Piece("1"));
+                    addIL("add");
+                    break;
                 default:
                     Errors.throwError("Calling unknown built-in function: " + Name);
                     break;
@@ -348,8 +355,13 @@ namespace RPGNet
 
                     Start = Value.IndexOf('(') + 1;
                     End = Value.LastIndexOf(')');
+                    if (Start < 0 || End < 0 || (Start-1) < 0)
+                    {
+                        Errors.showDefinedNotice("spacing");
+                        Errors.throwError("Trying to call a procedure but seems to be failing: " + Value);
+                    }
                     InsideBrackets = Item.getValue().Substring(Start, int.Parse(Math.Abs(Start - End).ToString())).Trim();
-                    Name = Value.Substring(0, Value.IndexOf('(')).Trim();
+                    Name = Value.Substring(0, Start-1).Trim();
 
                     callProc(Name, InsideBrackets);
                     break;
@@ -358,8 +370,13 @@ namespace RPGNet
 
                     Start = Value.IndexOf('(') + 1;
                     End = Value.LastIndexOf(')');
+                    if (Start < 0 || End < 0)
+                    {
+                        Errors.showDefinedNotice("spacing");
+                        Errors.throwError("Trying to call a built-in function but seems to be failing: " + Value);
+                    }
                     InsideBrackets = Item.getValue().Substring(Start, int.Parse(Math.Abs(Start - End).ToString())).Trim();
-                    Name = Value.Substring(0, Value.IndexOf('(')).Trim();
+                    Name = Value.Substring(0, Start-1).Trim();
 
                     doBIF(Name, InsideBrackets);
                     break;

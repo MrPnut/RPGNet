@@ -21,5 +21,22 @@ namespace RPGNet
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(Message);
         }
+        public static void showInfo(String Message)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(Message);
+        }
+
+        public static void showDefinedNotice(String ID)
+        {
+            switch (ID)
+            {
+                case "spacing":
+                    Errors.showInfo("This can be caused by spaces within quotes. For example:");
+                    Errors.showInfo("%Scan(' ':String) will crash within a program. Instead: ");
+                    Errors.showInfo("%Scan('$s':String) will fix this problem.");
+                    break;
+            }
+        }
     }
 }

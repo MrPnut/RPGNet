@@ -39,6 +39,7 @@ namespace RPGNet
         public Piece(String Val)
         {
             Val = Val.Trim();
+            Val = Val.Replace("$s", " ");
             if (Val.EndsWith("'") && Val.StartsWith("'"))
             {
                 _Type = Type.Varchar;
