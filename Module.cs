@@ -135,7 +135,8 @@ namespace RPGNet
                         break;
 
                     case "DSPLY":
-                        Proc.loadItem(Pieces[1]);
+                        Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
+                        Proc.Expression(Build, true);
                         Proc.addIL("call void [mscorlib]System.Console::WriteLine(string)");
                         break;
                     case "WAIT":
@@ -266,10 +267,7 @@ namespace RPGNet
             }
             foreach (var Proc in Procedures)
             {
-                foreach (String Piece in Proc.Value.getIL())
-                {
-                    Out.Add(Piece);
-                }
+                Out.AddRange(Proc.Value.getIL());
             }
             Out.Add("}");
 

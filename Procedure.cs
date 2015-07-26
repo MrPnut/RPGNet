@@ -126,10 +126,7 @@ namespace RPGNet
             Out.Add(String.Join(", ", Vars));
             Out.Add(")");
 
-            foreach (String Piece in ILCode)
-            {
-                Out.Add(Piece);
-            }
+            Out.AddRange(ILCode);
             Out.Add("}");
 
             return Out.ToArray();
@@ -247,9 +244,13 @@ namespace RPGNet
                             break;
                     }
                     break;
-                case "DEC":
+                case "DEC": //Pass in string
                     loadItem(Pieces[0]);
                     addIL("call float64 [mscorlib]System.Convert::ToDouble(string)");
+                    break;
+                case "LEN": //Pass in string
+                    loadItem(Pieces[0]);
+                    addIL("callvirt instance int32 [mscorlib]System.String::get_Length()");
                     break;
                 default:
                     Errors.throwError("Calling unknown built-in function: " + Name);

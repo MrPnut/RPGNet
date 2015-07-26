@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BIF.cs" />
     <Compile Include="Errors.cs" />
     <Compile Include="Interpreter.cs" />
     <Compile Include="Module.cs" />
