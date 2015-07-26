@@ -11,7 +11,7 @@ namespace RPGNet
         public static String[] Operators = { "+", "-", "/", "*", "=", "<>", ">", "<", ">=", "<=", "NOT" };
         public enum Type
         {
-            Operator, BIF, Procedure, Variable, Varchar, Packed, Int, Indicator, Void
+            Operator, BIF, Procedure, Variable, Varchar, Packed, Int, Indicator, Error, Void
         }
         public static Type getType(String In)
         {

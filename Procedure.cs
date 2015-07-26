@@ -34,7 +34,14 @@ namespace RPGNet
 
         public void addParam(String Name, Piece.Type Type)
         {
-            Parameters.Add(Name, Type);
+            if (Parameters.ContainsKey(Name))
+            {
+                Errors.throwNotice("Trying to add paramater " + Name + " to " + getName() + " which has already be defined.");
+            }
+            else
+            {
+                Parameters.Add(Name, Type);
+            }
         }
         public Piece.Type[] getParams()
         {
@@ -48,7 +55,14 @@ namespace RPGNet
 
         public void addVariable(String Name, Piece.Type Type)
         {
-            Variables.Add(Name, Type);
+            if (Variables.ContainsKey(Name))
+            {
+                Errors.throwNotice("Trying to redefine variable " + Name + ".");
+            }
+            else
+            {
+                Variables.Add(Name, Type);
+            }
         }
         public Piece.Type getVarType(String Name) {
             if (Variables.ContainsKey(Name))

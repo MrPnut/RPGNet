@@ -140,6 +140,7 @@ namespace RPGNet
                         break;
                     case "WAIT":
                         Proc.addIL("call string [mscorlib]System.Console::ReadLine()");
+                        Proc.addIL("pop");
                         break;
 
                     case "SELECT":
@@ -187,7 +188,7 @@ namespace RPGNet
                         Proc.addGoto(forElse);
                         break;
                     case "ENDIF":
-                        Proc.addGoto(getLastScope()); Scope++;
+                        Proc.addGoto(getLastScope());
                         break;
 
                     case "DOW":
@@ -209,6 +210,32 @@ namespace RPGNet
 
                     case "CALLP":
                         Proc.loadItem(Pieces[1]);
+                        break;
+
+                    case "MONITOR":
+                        Proc.addIL(".try");
+                        Proc.addIL("{");
+
+                        break;
+                    case "ON-ERROR":
+                        Labels.Add(getScope());
+                        Proc.addIL("leave.s " + getScope());
+                        Scope++;
+                        Proc.addIL("}");
+
+                        Proc.addVariable("E", Piece.Type.Error);
+                        Proc.addIL("catch [mscorlib]System.Exception");
+                        Proc.addIL("{");
+                        Proc.storeItem("E");
+                        break;
+                    case "ENDMON":
+                        Labels.Add(getScope());
+                        Proc.addIL("leave.s " + getScope());
+                        Scope++;
+                        Proc.addIL("}");
+                        Proc.addGoto(getLastScope());
+                        Proc.addGoto(getLastScope());
+                        Proc.addIL("nop");
                         break;
 
                     default:
