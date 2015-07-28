@@ -74,19 +74,26 @@ namespace RPGNet
             List<Piece> Pieces = new List<Piece>();
             String Current = "";
 
-            Boolean CONCAT = false;
+            Boolean SPEECH = false;
+            int BracketScope = 0;
             foreach (Char c in Part.ToCharArray())
             {
                 switch (c)
                 {
                     case '\'':
-                    case '(':
-                    case ')':
+                        SPEECH = !SPEECH;
                         Current += c;
-                        CONCAT = !CONCAT;
+                        break;
+                    case '(':
+                        BracketScope++;
+                        Current += c;
+                        break;
+                    case ')':
+                        BracketScope--;
+                        Current += c;
                         break;
                     case ' ':
-                        if (!CONCAT)
+                        if (SPEECH == false && BracketScope == 0)
                         {
                             Pieces.Add(new Piece(Current));
                             Current = "";
