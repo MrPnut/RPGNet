@@ -259,6 +259,37 @@ namespace RPGNet
                     loadItem(new Piece("1"));
                     addIL("add");
                     break;
+                case "TRIM": //Trim(string);
+                    loadItem(Pieces[0]);
+                    addIL("callvirt instance string [mscorlib]System.String::Trim()");
+                    break;
+                case "TRIML": //TrimL(string);
+                    //TrimStart in mscorlib requires a character array, so we create a system.char array
+                    loadItem(Pieces[0]);
+                    loadItem(new Piece("0"));
+                    addIL("newarr [mscorlib]System.Char");
+                    addIL("callvirt instance string [mscorlib]System.String::TrimStart(char[])");
+                    break;
+                case "TRIMR": //TrimL(string);
+                    //same as TrimEnd, so we create a system.char array
+                    loadItem(Pieces[0]);
+                    loadItem(new Piece("0"));
+                    addIL("newarr [mscorlib]System.Char");
+                    addIL("callvirt instance string [mscorlib]System.String::TrimEnd(char[])");
+                    break;
+                case "SUBST": //Subst(Var, startindex, length)
+                    loadItem(Pieces[0]);
+
+                    loadItem(Pieces[1]);
+                    loadItem(new Piece("1"));
+                    addIL("sub"); //We must take one from the second param to match RPGs arrays (start from 1)
+
+                    loadItem(Pieces[2]);
+                    addIL("callvirt instance string [mscorlib]System.String::Substring(int32, int32)");
+                    break;
+                case "THIS":
+                    loadItem(new Piece("'" + getName() + "'"));
+                    break;
                 default:
                     Errors.throwError("Calling unknown built-in function: " + Name);
                     break;
