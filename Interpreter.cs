@@ -71,6 +71,8 @@ namespace RPGNet
         }
         public static Piece[] getPieces(String Part)
         {
+            //This gets the pieces for a statement - not BIFS or procs. 
+            //See issue #6
             List<Piece> Pieces = new List<Piece>();
             String Current = "";
 
