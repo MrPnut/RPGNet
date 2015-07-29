@@ -10,7 +10,7 @@ namespace RPGNet
     {
         private String ProcName;
         private Dictionary<String, Piece.Type> Parameters;
-        private Dictionary<String, Piece.Type> Variables;
+        private Dictionary<String, Variable> Variables;
         private Piece.Type ReturnType;
         private List<String> ILCode;
 
@@ -18,7 +18,7 @@ namespace RPGNet
         {
             ProcName = Name;
             Parameters = new Dictionary<String, Piece.Type>();
-            Variables = new Dictionary<String, Piece.Type>();
+            Variables = new Dictionary<String, Variable>();
             ReturnType = Piece.Type.Void;
             ILCode = new List<String>();
         }
@@ -53,7 +53,7 @@ namespace RPGNet
             return Out.ToArray();
         }
 
-        public void addVariable(String Name, Piece.Type Type)
+        public void addVariable(String Name, Piece.Type Type, int Dim = 0)
         {
             if (Variables.ContainsKey(Name))
             {
@@ -61,13 +61,13 @@ namespace RPGNet
             }
             else
             {
-                Variables.Add(Name, Type);
+                Variables.Add(Name, new Variable(Type, Dim));
             }
         }
         public Piece.Type getVarType(String Name) {
             if (Variables.ContainsKey(Name))
             {
-                return Variables[Name];
+                return Variables[Name].getType();
             }
             else if (Module.globalExists(Name))
             {
@@ -105,6 +105,7 @@ namespace RPGNet
         {
             List<String> Out = new List<String>();
             List<String> Vars = new List<string>();
+            Boolean isArray = false;
 
             Out.Add(".method static " + RPG.getCILType(ReturnType) + " " + getName() + " (");
             foreach (var Parm in Parameters)
@@ -119,9 +120,10 @@ namespace RPGNet
             if (getName() == Module.getName()) Out.Add(".entrypoint");
             Out.Add(".maxstack " + Variables.Count);
             Out.Add(".locals init (");
-            foreach (var Variable in Variables)
+            foreach (var Varu in Variables)
             {
-                Vars.Add(RPG.getCILType(Variable.Value) + " " + Variable.Key);
+                isArray = (Varu.Value.getDim() > 0);
+                Vars.Add(RPG.getCILType(Varu.Value.getType()) + (isArray ? "[]" : "") + " " + Varu.Key);
             }
             Out.Add(String.Join(", ", Vars));
             Out.Add(")");
