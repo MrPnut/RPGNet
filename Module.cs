@@ -44,22 +44,22 @@ namespace RPGNet
         #endregion
 
         #region Global methods
-        private static Dictionary<String, Piece.Type> Globals = new Dictionary<String,Piece.Type>();
+        private static Dictionary<String, Variable> Globals = new Dictionary<String, Variable>();
         public static Boolean globalExists(String Name)
         {
             return Globals.ContainsKey(Name);
         }
         public static string getGlobalTypeCIL(String Name)
         {
-            return RPG.getCILType(Globals[Name]);
+            return RPG.getCILType(Globals[Name].getType());
         }
         public static Piece.Type getGlobalType(String Name)
         {
-            return Globals[Name];
+            return Globals[Name].getType();
         }
-        public static void addGlobal(String Name, Piece.Type Type)
+        public static void addGlobal(String Name, Piece.Type Type, int Dim = 0)
         {
-            Globals.Add(Name, Type);
+            Globals.Add(Name, new Variable(Type, Dim));
         }
         #endregion
 
@@ -263,7 +263,7 @@ namespace RPGNet
             Out.Add(".class private auto ansi " + Program_Name + ".Program extends [mscorlib]System.Object {");
             foreach (var Var in Globals)
             {
-                Out.Add(".field private static " + RPG.getCILType(Var.Value) + " " + Var.Key);
+                Out.Add(".field private static " + RPG.getCILType(Var.Value.getType()) + " " + Var.Key);
             }
             foreach (var Proc in Procedures)
             {
