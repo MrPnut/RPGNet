@@ -11,7 +11,19 @@ namespace RPGNet
         public static String[] Operators = { "+", "-", "/", "*", "=", "<>", ">", "<", ">=", "<=", "NOT" };
         public enum Type
         {
-            Operator, BIF, Procedure, Variable, Varchar, Packed, Int, Indicator, Error, Void
+            Operator, BIF, Call, Variable, Varchar, Packed, Int, Indicator, Error, Void
+            /*
+             * Piece.Type descriptions
+             *  - Operator can be any value from the Operators String array
+             *  - A BIF is a piece that starts with % and ends with ) which will do a 'lower level' call
+             *  - A call is currently a piece that ends with ) which calls procedures.. will eventually support arrays
+             *  - Variable is a piece that indicates that the value may represent a variable
+             *  - Varchar is the type of the value passed in
+             *  - Int is the type of the value passed in
+             *  - Indicator is the type of value passed in
+             *  - Error is used for the Exceptione type in MSIL
+             *  - Void represents no return for procedures.
+             */
         }
         public static Type getType(String In)
         {
@@ -83,7 +95,7 @@ namespace RPGNet
                 {
                     if (Val.EndsWith(")"))
                     {
-                        _Type = Type.Procedure;
+                        _Type = Type.Call;
                     }
                     else if (Val.StartsWith("*"))
                     {

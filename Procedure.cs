@@ -296,8 +296,20 @@ namespace RPGNet
             }
             addIL("// ---------------");
         }
-        public void callProc(String Name, String InsideBrackets) 
+        public void callProc(String Name, String InsideBrackets)  
         {
+            /*
+             * This function will also support arrays.
+             * Like so:
+             * if (Calling != Null) {
+             *   //doCalling
+             * }
+             * else if (varExists) { //The array
+             *   //load array element onto stack
+             * } else {
+             *   //Call a void procedure (like what Calling == null does now)
+             * }
+             */
             Procedure Calling = Module.getProcedure(Name);
 
             if (Calling == null)
@@ -312,9 +324,9 @@ namespace RPGNet
                     loadItem(new Piece(Parm));
                 }
 
-                addIL("call " + RPG.getCILType(Module.getProcedure(Name).ReturnType) + " " + Module.getName() + ".Program::" + Name + " (");
+                addIL("call " + RPG.getCILType(Calling.ReturnType) + " " + Module.getName() + ".Program::" + Name + " (");
                 List<String> Params = new List<String>();
-                foreach (Piece.Type Param in Module.getProcedure(Name).getParams())
+                foreach (Piece.Type Param in Calling.getParams())
                 {
                     Params.Add(RPG.getCILType(Param));
                 }
@@ -381,7 +393,7 @@ namespace RPGNet
                         Errors.throwNotice("Trying to find an unknown variable: " + Item.getValue() + ".");
                     }
                     break;
-                case Piece.Type.Procedure: //Will pass in Procedure(etc)
+                case Piece.Type.Call: //Will pass in Procedure(etc)
                     Value = Item.getValue();
 
                     Start = Value.IndexOf('(') + 1;

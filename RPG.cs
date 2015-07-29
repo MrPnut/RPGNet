@@ -25,7 +25,7 @@ namespace RPGNet
                 case Piece.Type.Error:
                     return "class [mscorlib]System.Exception";
                 default:
-                    Errors.throwNotice("Found an unknown return type for CIL: " + Type.ToString());
+                    Errors.throwNotice("Found an unknown type for CIL: " + Type.ToString());
                     return "void";
             }
         }
