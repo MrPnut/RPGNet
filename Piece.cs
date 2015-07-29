@@ -55,8 +55,13 @@ namespace RPGNet
             if (Val.EndsWith("'") && Val.StartsWith("'"))
             {
                 _Type = Type.Varchar;
+
+                //Rid of the quote marks
                 Val = Val.Substring(1);
                 Val = Val.Substring(0, Val.Length - 1);
+
+                Val = Val.Replace("\\", "\\\\");
+                Val = Val.Replace("\"", "\\\"");
                 Val = '"' + Val + '"';
                 Val = Val.Replace("''", "'");
             }
