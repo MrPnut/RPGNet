@@ -37,7 +37,6 @@ namespace RPGNet
             else
             {
                 //Error
-                Errors.throwNotice("Trying to load unknown procedure: " + Name);
                 return null;
             }
         }
@@ -56,6 +55,10 @@ namespace RPGNet
         public static Piece.Type getGlobalType(String Name)
         {
             return Globals[Name].getType();
+        }
+        public static int getGlobalDim(String Name)
+        {
+            return Globals[Name].getDim();
         }
         public static void addGlobal(String Name, Piece.Type Type, int Dim = 0)
         {
@@ -84,6 +87,9 @@ namespace RPGNet
             Procedure Proc = null;
             Piece[] Pieces;
             Piece[] Build;
+
+            String[] forKey;
+            int forDim = 0;
             String forElse;
             foreach (String Part in Interpreter.toParts(Code))
             {
@@ -115,13 +121,24 @@ namespace RPGNet
                         //Has no real use :(
                         break;
                     case "DCL-S": //DCL-S NAME TYPE
+                        Build = Interpreter.StringBuilder(Pieces, 3, Pieces.Length);
+                        foreach (Piece keyword in Build)
+                        {
+                            forKey = Interpreter.parseCall(keyword.getValue());
+                            switch (forKey[0].ToUpper())
+                            {
+                                case "DIM":
+                                    forDim = int.Parse(forKey[1]);
+                                    break;
+                            }
+                        }
                         if (Proc != null)
                         {
-                            Proc.addVariable(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
+                            Proc.addVariable(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()), forDim);
                         }
                         else
                         {
-                            addGlobal(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
+                            addGlobal(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()), forDim);
                         }
                         break;
                     case "RETURN":
@@ -239,8 +256,25 @@ namespace RPGNet
                         Proc.addIL("nop");
                         break;
 
+                    case "CLEAR": //Clear array
+                        Proc.loadItem(new Piece(Proc.getVarDim(Pieces[1].getValue()).ToString()));
+                        Proc.addIL("newarr " + RPG.getCILTypeClass(Proc.getVarType(Pieces[1].getValue())));
+                        Proc.storeItem(Pieces[1].getValue());
+                        break;
+
                     default:
-                        if (Pieces.Length > 1)
+                        if (Pieces[0].getValue().Contains(")"))
+                        {
+                            if (Pieces[1].getInstance() != Piece.Type.Operator) continue;
+                            forKey = Interpreter.parseCall(Pieces[0].getValue());
+                            Proc.loadItem(new Piece(forKey[0])); //Array name
+                            Proc.loadItem(new Piece(forKey[1])); //Index
+                            Proc.loadItem(new Piece("1")); Proc.addIL("sub"); //For RPGLE indexs - 1
+                            
+                            Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length), Proc.getVarType(forKey[0]));
+                            Proc.addIL("st" + RPG.getCILArray(Proc.getVarType(forKey[0])));
+                        }
+                        else if (Pieces.Length > 1)
                         {
                             if (Pieces[1].getInstance() != Piece.Type.Operator) continue;
                             if (Pieces[0].getInstance() != Piece.Type.Variable) continue;

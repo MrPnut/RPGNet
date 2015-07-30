@@ -84,6 +84,22 @@ namespace RPGNet
                 return Piece.Type.Void;
             }
         }
+        public int getVarDim(String Name)
+        {
+            if (Variables.ContainsKey(Name))
+            {
+                return Variables[Name].getDim();
+            }
+            else if (Module.globalExists(Name))
+            {
+                return Module.getGlobalDim(Name);
+            }
+            else
+            {
+                Errors.throwError("Trying to find dim of an unknown variable: " + Name);
+                return 0;
+            }
+        }
 
         public void addIL(String IL)
         {
@@ -232,6 +248,7 @@ namespace RPGNet
             {
                 case "CHAR":
                     loadItem(Pieces[0]);
+                    Pieces[0] = new Piece(Interpreter.parseCall(Pieces[0].getValue())[0]);
                     switch (Pieces[0].getInstance())
                     {
                         case Piece.Type.Variable:
@@ -244,6 +261,7 @@ namespace RPGNet
                     break;
                 case "INT":
                     loadItem(Pieces[0]);
+                    Pieces[0] = new Piece(Interpreter.parseCall(Pieces[0].getValue())[0]);
                     switch (Pieces[0].getInstance())
                     {
                         case Piece.Type.Variable:
@@ -308,28 +326,26 @@ namespace RPGNet
         }
         public void callProc(String Name, String InsideBrackets)  
         {
-            /*
-             * This function will also support arrays.
-             * Like so:
-             * if (Calling != Null) {
-             *   //doCalling
-             * }
-             * else if (varExists) { //The array
-             *   //load array element onto stack
-             * } else {
-             *   //Call a void procedure (like what Calling == null does now)
-             * }
-             */
             Procedure Calling = Module.getProcedure(Name);
-            String ReturnCIL = RPG.getCILType(Piece.Type.Void);
-            List<Piece> PassedInPieces = new List<Piece>();
 
-            if (false) //Array check
+            if (Variables.ContainsKey(Name)) //Array check
             {
-
+                if (Variables[Name].getDim() > 0)
+                {
+                    loadItem(new Piece(Name));
+                    loadItem(new Piece(InsideBrackets));
+                    loadItem(new Piece("1")); addIL("sub"); //For RPGLE indexs - 1
+                    addIL("ld" + RPG.getCILArray(getVarType(Name)));
+                }
+                else
+                {
+                    //Error?
+                }
             }
             else
             {
+                String ReturnCIL = RPG.getCILType(Piece.Type.Void);
+                List<Piece> PassedInPieces = new List<Piece>();
                 String[] PassedIn = InsideBrackets.Split(':');
                 if (Calling == null)
                 {
@@ -360,6 +376,7 @@ namespace RPGNet
         }
         public void storeItem(String Var) //Will accept globals
         {
+            String[] forVar;
             if (Module.globalExists(Var))
             {
                 addIL("stsfld " + Module.getGlobalTypeCIL(Var) + " " + Module.getName() + ".Program::" + Var);
@@ -368,6 +385,10 @@ namespace RPGNet
             {
                 addIL("stloc " + Var);
             }
+            else if (Var.Contains("(") && Var.Contains(")"))
+            {
+                forVar = Interpreter.parseCall(Var);
+            }
             else
             {
                 Errors.throwError("Trying to store in an unknown variable: " + Var);
@@ -375,8 +396,8 @@ namespace RPGNet
         }
         public String loadItem(Piece Item)
         {
+            String[] forCall;
             String Value = "", Name = "", InsideBrackets = "";
-            int Start, End;
             switch (Item.getInstance())
             {
                 case Piece.Type.Indicator:
@@ -418,34 +439,13 @@ namespace RPGNet
                     }
                     break;
                 case Piece.Type.Call: //Will pass in Procedure(etc)
-                    Value = Item.getValue();
-
-                    Start = Value.IndexOf('(') + 1;
-                    End = Value.LastIndexOf(')');
-                    if (Start < 0 || End < 0 || (Start-1) < 0)
-                    {
-                        Errors.showDefinedNotice("spacing");
-                        Errors.throwError("Trying to call a procedure but seems to be failing: " + Value);
-                    }
-                    InsideBrackets = Item.getValue().Substring(Start, int.Parse(Math.Abs(Start - End).ToString())).Trim();
-                    Name = Value.Substring(0, Start-1).Trim();
-
-                    callProc(Name, InsideBrackets);
+                    forCall = Interpreter.parseCall(Item.getValue());
+                    callProc(forCall[0], forCall[1]);
                     break;
                 case Piece.Type.BIF:
-                    Value = Item.getValue();
+                    forCall = Interpreter.parseCall(Item.getValue());
 
-                    Start = Value.IndexOf('(') + 1;
-                    End = Value.LastIndexOf(')');
-                    if (Start < 0 || End < 0)
-                    {
-                        Errors.showDefinedNotice("spacing");
-                        Errors.throwError("Trying to call a built-in function but seems to be failing: " + Value);
-                    }
-                    InsideBrackets = Item.getValue().Substring(Start, int.Parse(Math.Abs(Start - End).ToString())).Trim();
-                    Name = Value.Substring(0, Start-1).Trim();
-
-                    doBIF(Name, InsideBrackets);
+                    doBIF(forCall[0], forCall[1]);
                     break;
             }
             return "";

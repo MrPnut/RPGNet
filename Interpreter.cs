@@ -124,5 +124,19 @@ namespace RPGNet
             }
             return Output.ToArray();
         }
+        public static String[] parseCall(String Value)
+        {
+            String[] Out = new String[2];
+            int Start, End;
+            Start = Value.IndexOf('(') + 1;
+            End = Value.LastIndexOf(')');
+            if (Start < 0 || End < 0 || (Start - 1) < 0)
+            {
+                Errors.throwError("Trying to parse a call/BIF but seems to be failing: " + Value);
+            }
+            Out[1] = Value.Substring(Start, int.Parse(Math.Abs(Start - End).ToString())).Trim(); //Params
+            Out[0] = Value.Substring(0, Start - 1).Trim(); //Name
+            return Out;
+        }
     }
 }
