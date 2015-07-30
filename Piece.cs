@@ -124,7 +124,7 @@ namespace RPGNet
                 }
                 else
                 {
-                    Errors.throwError("Unknown piece found: " + Val);
+                    Errors.throwError("Unknown type found: '" + Val + "'");
                 }
             }
             _Value = Val;

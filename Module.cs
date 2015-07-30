@@ -126,7 +126,7 @@ namespace RPGNet
                         break;
                     case "RETURN":
                         Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
-                        Proc.Expression(Build);
+                        Proc.Expression(Build, Proc.getReturn());
                         Proc.addIL("ret");
                         break;
                     case "END-PROC":
@@ -136,7 +136,7 @@ namespace RPGNet
 
                     case "DSPLY":
                         Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
-                        Proc.Expression(Build, true);
+                        Proc.Expression(Build, Piece.Type.Varchar);
                         Proc.addIL("call void [mscorlib]System.Console::WriteLine(string)");
                         break;
                     case "WAIT":
@@ -244,7 +244,7 @@ namespace RPGNet
                         {
                             if (Pieces[1].getInstance() != Piece.Type.Operator) continue;
                             if (Pieces[0].getInstance() != Piece.Type.Variable) continue;
-                            Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length), (Proc.getVarType(Pieces[0].getValue()) == Piece.Type.Varchar));
+                            Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length), Proc.getVarType(Pieces[0].getValue()));
                             Proc.storeItem(Pieces[0].getValue());
                         }
                         break;

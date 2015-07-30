@@ -27,16 +27,21 @@ namespace RPGNet
         {
             return ProcName;
         }
+
         public void setReturn(Piece.Type Type)
         {
             ReturnType = Type;
+        }
+        public Piece.Type getReturn()
+        {
+            return ReturnType;
         }
 
         public void addParam(String Name, Piece.Type Type)
         {
             if (Parameters.ContainsKey(Name))
             {
-                Errors.throwNotice("Trying to add paramater " + Name + " to " + getName() + " which has already be defined.");
+                Errors.throwError("Trying to add paramater " + Name + " to " + getName() + " which has already be defined.");
             }
             else
             {
@@ -57,7 +62,7 @@ namespace RPGNet
         {
             if (Variables.ContainsKey(Name))
             {
-                Errors.throwNotice("Trying to redefine variable " + Name + ".");
+                Errors.throwError("Trying to redefine variable " + Name + ".");
             }
             else
             {
@@ -75,7 +80,7 @@ namespace RPGNet
             }
             else
             {
-                Errors.throwNotice("Trying to find type of an unknown variable: " + Name);
+                Errors.throwError("Trying to find type of an unknown variable: " + Name);
                 return Piece.Type.Void;
             }
         }
@@ -106,7 +111,9 @@ namespace RPGNet
             List<String> Out = new List<String>();
             List<String> Vars = new List<string>();
             Boolean isArray = false;
-
+            Out.Add("");
+            Out.Add("");
+            Out.Add("//************************************************************************");
             Out.Add(".method static " + RPG.getCILType(ReturnType) + " " + getName() + " (");
             foreach (var Parm in Parameters)
             {
@@ -130,11 +137,12 @@ namespace RPGNet
 
             Out.AddRange(ILCode);
             Out.Add("}");
+            Out.Add("//************************************************************************");
 
             return Out.ToArray();
         }
 
-        public void Expression(Piece[] In, Boolean Varchar = false)
+        public void Expression(Piece[] In, Piece.Type TypeOut = Piece.Type.Void)
         {
             Boolean NOT = false;
             String OP = "";
@@ -184,7 +192,7 @@ namespace RPGNet
                                 addNot();
                                 break;
                             case "+":
-                                if (Varchar)
+                                if (TypeOut == Piece.Type.Varchar)
                                 {
                                     addIL("call string [mscorlib]System.String::Concat(string, string)");
                                 }
@@ -313,24 +321,38 @@ namespace RPGNet
              * }
              */
             Procedure Calling = Module.getProcedure(Name);
+            String ReturnCIL = RPG.getCILType(Piece.Type.Void);
+            List<Piece> PassedInPieces = new List<Piece>();
 
-            if (Calling == null)
+            if (false) //Array check
             {
-                addIL("call void " + Module.getName() + ".Program::" + Name + " ()");
-                Errors.throwNotice(Name + " is assumed to exist, as no prototype or procedure is defined yet.");
+
             }
             else
             {
-                foreach (String Parm in InsideBrackets.Split(':'))
+                String[] PassedIn = InsideBrackets.Split(':');
+                if (Calling == null)
                 {
-                    loadItem(new Piece(Parm));
+                    Errors.throwNotice("Calling " + Name + " but it hasn't been defined yet. Return is void automatically.");
+                }
+                else
+                {
+                    ReturnCIL = RPG.getCILType(Calling.getReturn());
+                }
+                foreach (String Parm in PassedIn)
+                {
+                    if (Parm != "")
+                    {
+                        PassedInPieces.Add(new Piece(Parm));
+                        loadItem(new Piece(Parm));
+                    }
                 }
 
-                addIL("call " + RPG.getCILType(Calling.ReturnType) + " " + Module.getName() + ".Program::" + Name + " (");
+                addIL("call " + ReturnCIL + " " + Module.getName() + ".Program::" + Name + " (");
                 List<String> Params = new List<String>();
-                foreach (Piece.Type Param in Calling.getParams())
+                foreach (Piece Param in PassedInPieces.ToArray())
                 {
-                    Params.Add(RPG.getCILType(Param));
+                    Params.Add(RPG.getCILType(Param.getInstance()));
                 }
                 addIL(String.Join(", ", Params));
                 addIL(")");
