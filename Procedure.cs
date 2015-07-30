@@ -248,7 +248,7 @@ namespace RPGNet
             {
                 case "CHAR":
                     loadItem(Pieces[0]);
-                    Pieces[0] = new Piece(Interpreter.parseCall(Pieces[0].getValue())[0]);
+                    if (Pieces[0].getValue().EndsWith(")")) Pieces[0] = new Piece(Interpreter.parseCall(Pieces[0].getValue())[0]);
                     switch (Pieces[0].getInstance())
                     {
                         case Piece.Type.Variable:
@@ -261,7 +261,7 @@ namespace RPGNet
                     break;
                 case "INT":
                     loadItem(Pieces[0]);
-                    Pieces[0] = new Piece(Interpreter.parseCall(Pieces[0].getValue())[0]);
+                    if (Pieces[0].getValue().EndsWith(")")) Pieces[0] = new Piece(Interpreter.parseCall(Pieces[0].getValue())[0]);
                     switch (Pieces[0].getInstance())
                     {
                         case Piece.Type.Variable:

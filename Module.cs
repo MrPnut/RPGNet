@@ -122,7 +122,7 @@ namespace RPGNet
                     case "END-PI":
                         //Has no real use :(
                         break;
-                    case "DCL-S": //DCL-S NAME TYPE
+                    case "DCL-S": //DCL-S NAME TYPE keywords
                         Build = Interpreter.StringBuilder(Pieces, 3, Pieces.Length);
                         foreach (Piece keyword in Build)
                         {
