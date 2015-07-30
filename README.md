@@ -3,4 +3,75 @@ RPGLE Compiler for .NET.
 
 Since this is a free-time-project only, it won't be worked on as much as I like. The idea behind this project is to create a compiler based on free-format RPG which would compile down to IL/CIL/MSIL/.NET. I want users to be able to copy their source code and compile it with minimal change.
 
-Obviously there has to be things that have to be changed to suit the .NET framework. For example, file declarations or the DSPLY operation codes, as well as some other things. The type system would obviosuly have to be different from the iSeries version. For example, I plan to keep VARCHAR and alias CHAR to VARCHAR too. Int will remain the same. For example you can define different INT types (6, 16 or 32 bit) as well as different PACKED types (which would be FLOAT within the CIL).
+RPGNet is actually in a decent state at the moment. A current list of features would include (in no particular order):
+* Build-In Functions (not all of them)
+* Variables
+* Procedures
+* Global/Local variables
+* Arrays
+* Totally free-format
+* Error catching (Monitoring)
+
+Operation codes including:
+* IF
+* ELSEIF
+* SELECT / WHEN
+* DSPLY
+* MONITOR / ON-ERROR / ENDMON
+* DOW
+* WAIT (Just for testing, really)
+
+Some code examples:
+
+```
+Dcl-Proc Select;
+
+  Dcl-S Number Int;
+  Number = 6;
+  
+  Select;
+  
+    When Number = 5;
+      Dsply 'IT''S 5!!';
+      
+    When Number = 6;
+      If 5 <> 6;
+        Dsply '5 is not 6';
+      Endif;
+      Dsply 'IT''S 6!!';
+      
+  Endsel;
+
+  Dsply 'yes';
+  Wait;
+
+End-Proc;
+```
+
+```
+Dcl-Proc RealSpacingFix;
+
+  Dcl-S Text Varchar;
+  Dcl-S theScan Int;
+
+  Text = 'Hello world';
+  theScan = %Scan(' ':Text);
+  Dsply 'Scan: ' + %Char(theScan);
+
+  Wait;
+
+End-Proc;
+```
+
+```
+Dcl-Proc MonTest;
+
+  Monitor;
+    Dsply %Int('18.5');
+  On-Error;
+    Dsply 'NO';
+  Endmon;
+  Wait;
+
+End-Proc;
+```
