@@ -90,9 +90,11 @@ namespace RPGNet
 
             String[] forKey;
             int forDim = 0;
-            String forElse;
+            String forElse, forInz = "";
             foreach (String Part in Interpreter.toParts(Code))
             {
+                forDim = 0;
+                forInz = "";
                 Pieces = Interpreter.getPieces(Part);
                 if (Proc != null) Proc.addIL("");
                 if (Proc != null) Proc.addIL("//" + Part);
@@ -130,11 +132,26 @@ namespace RPGNet
                                 case "DIM":
                                     forDim = int.Parse(forKey[1]);
                                     break;
+                                case "INZ":
+                                    forInz = forKey[1];
+                                    break;
                             }
                         }
                         if (Proc != null)
                         {
+                            //Will not work for arrays.
                             Proc.addVariable(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()), forDim);
+                            if (forDim > 0)
+                            {
+                                Proc.loadItem(new Piece(forDim.ToString()));
+                                Proc.addIL("newarr " + RPG.getCILTypeClass(Piece.getType(Pieces[2].getValue())));
+                                Proc.storeItem(Pieces[1].getValue());
+                            }
+                            if (forInz.Trim() != "")
+                            {
+                                Proc.loadItem(new Piece(forInz));
+                                Proc.storeItem(Pieces[1].getValue());
+                            }
                         }
                         else
                         {
