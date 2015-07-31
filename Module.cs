@@ -83,7 +83,7 @@ namespace RPGNet
 
         public static void Run(String Name, String Code)
         {
-            Program_Name = Name;
+            Program_Name = Name; 
             Procedure Proc = null;
             Piece[] Pieces;
             Piece[] Build;
@@ -140,15 +140,7 @@ namespace RPGNet
                         if (Proc != null)
                         {
                             //Will not work for arrays.
-                            if (Proc.getName() == getName())
-                            {
-                                addGlobal(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()), forDim);
-                                Errors.throwNotice(Pieces[1].getValue() + " is now global as was defined in the mainline procedure.");
-                            }
-                            else
-                            {
-                                Proc.addVariable(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()), forDim);
-                            }
+                            Proc.addVariable(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()), forDim);
                             if (forDim > 0)
                             {
                                 Proc.loadItem(new Piece(forDim.ToString()));
@@ -322,7 +314,7 @@ namespace RPGNet
             Out.Add(".class private auto ansi " + Program_Name + ".Program extends [mscorlib]System.Object {");
             foreach (var Var in Globals)
             {
-                Out.Add(".field private static " + RPG.getCILType(Var.Value.getType()) + (Var.Value.getDim() > 0 ? "[]" : "") + " " + Var.Key);
+                Out.Add(".field private static " + RPG.getCILType(Var.Value.getType()) + " " + Var.Key);
             }
             foreach (var Proc in Procedures)
             {
