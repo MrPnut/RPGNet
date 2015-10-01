@@ -1,4 +1,6 @@
 # RPGNet
+(This is currently back into development).
+
 RPGLE Compiler for .NET.
 
 Since this is a free-time-project only, it won't be worked on as much as I like. The idea behind this project is to create a compiler based on free-format RPG which would compile down to IL/CIL/MSIL/.NET. I want users to be able to copy their source code and compile it with minimal change.
@@ -11,6 +13,7 @@ RPGNet is actually in a decent state at the moment. A current list of features w
 * Arrays
 * Totally free-format
 * Error catching (Monitoring)
+* Embedded SQL (not commited, as a work in progress)
 
 Operation codes including:
 * IF
@@ -20,6 +23,7 @@ Operation codes including:
 * MONITOR / ON-ERROR / ENDMON
 * DOW
 * WAIT (Just for testing, really)
+* EXEC SQL
 
 Some code examples:
 
