@@ -65,6 +65,10 @@ namespace RPGNet
         {
             DataStructures.Add(Name, DSTemp);
         }
+        public String getDSTemplate(String Var)
+        {
+            return  DataStructures[Var];
+        }
         public void addVariable(String Name, Piece.Type Type, int Dim = 0)
         {
             if (Variables.ContainsKey(Name))
@@ -161,6 +165,13 @@ namespace RPGNet
             }
             Out.Add(String.Join(", ", Vars));
             Out.Add(")");
+
+            foreach (var DS in DataStructures)
+            {
+                Vars.Add("valuetype " + Module.getName() + ".Program/" + DS.Value + " " + DS.Key);
+                Out.Add("ldloca " + DS.Key);
+                Out.Add("initobj " + Module.getName() + ".Program/" + DS.Value);
+            }
 
             Out.AddRange(ILCode);
             Out.Add("}");
@@ -443,7 +454,7 @@ namespace RPGNet
                 case Piece.Type.DataStructure:
                     forCall = Item.getValue().Split('.');
                     addIL("ldloc " + forCall[0]);
-                    addIL("ldfld " + Module.getDSFieldType(DataStructures[forCall[0]], forCall[1]) + " " + Module.getName() + ".Program/" + DataStructures[forCall[0]] + "::" + forCall[1]);
+                    addIL("ldfld " + RPG.getCILType(Module.getDSFieldType(DataStructures[forCall[0]], forCall[1])) + " " + Module.getName() + ".Program/" + DataStructures[forCall[0]] + "::" + forCall[1]);
                     break;
                 case Piece.Type.Variable:
                     if (Parameters.ContainsKey(Item.getValue()))
@@ -452,6 +463,7 @@ namespace RPGNet
                     }
                     else if (DataStructures.ContainsKey(Item.getValue()))
                     {
+                        MaxStack = Math.Max(2, MaxStack);
                         addIL("ldloca " + Item.getValue());
                     }
                     else if (Variables.ContainsKey(Item.getValue()))

@@ -146,6 +146,7 @@ namespace RPGNet
                                     {
                                         case "LIKEDS":
                                             //Define DS in local pgm
+                                            Console.WriteLine("LIkEDS!!");
                                             Proc.addDS(Pieces[1].getValue(), forKey[1]);
                                             break;
                                     }
@@ -345,7 +346,7 @@ namespace RPGNet
                         break;
 
                     default:
-                        if (Pieces[0].getValue().Contains(")"))
+                        if (Pieces[0].getValue().Contains(")")) //for arrays
                         {
                             if (Pieces[1].getInstance() != Piece.Type.Operator) continue;
                             forKey = Interpreter.parseCall(Pieces[0].getValue());
@@ -359,9 +360,18 @@ namespace RPGNet
                         else if (Pieces.Length > 1)
                         {
                             if (Pieces[1].getInstance() != Piece.Type.Operator) continue;
-                            if (Pieces[0].getInstance() != Piece.Type.Variable) continue;
-                            Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length), Proc.getVarType(Pieces[0].getValue()));
-                            Proc.storeItem(Pieces[0].getValue());
+                            if (Pieces[0].getInstance() == Piece.Type.Variable)
+                            {
+                                Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length), Proc.getVarType(Pieces[0].getValue())); //everything after the op
+                                Proc.storeItem(Pieces[0].getValue());
+                            }
+                            if (Pieces[0].getInstance() == Piece.Type.DataStructure)
+                            {
+                                forKey = Pieces[0].getValue().Split('.');
+                                Proc.loadItem(new Piece(forKey[0]));
+                                Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length), Module.getDSFieldType(Proc.getDSTemplate(forKey[0]), forKey[1])); //everything after the op
+                                Proc.addIL("stfld " + RPG.getCILType(Module.getDSFieldType(Proc.getDSTemplate(forKey[0]), forKey[1])) + " " + Module.getName() + ".Program/" + Proc.getDSTemplate(forKey[0]) + "::" + forKey[1]);
+                            }
                         }
                         break;
                 }
