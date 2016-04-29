@@ -256,13 +256,12 @@ namespace RPGNet
                         break;
                     case "WHEN":
                         forElse = getLastScope();
+                        Proc.addGoto(forElse);
 
                         Labels.Add(getScope());
                         Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
                         Proc.Expression(Build);
-                        Proc.addIL("brfalse.s " + getScope()); Scope++;
-
-                        Proc.addGoto(forElse);
+                        Proc.addIL("brfalse " + getScope()); Scope++;
                         break;
                     case "ENDSEL":
                         Proc.addGoto(getLastScope()); Scope++;
@@ -273,14 +272,14 @@ namespace RPGNet
                         Proc.Expression(Build);
 
                         Labels.Add(getScope());
-                        Proc.addIL("brfalse.s " + getScope());
+                        Proc.addIL("brfalse " + getScope());
                         Scope++;
                         break;
                     case "ELSE":
                         forElse = getLastScope();
 
                         Labels.Add(getScope()); 
-                        Proc.addIL("br.s " + getScope()); Scope++;
+                        Proc.addIL("br " + getScope()); Scope++;
 
                         Proc.addGoto(forElse);
                         break;
@@ -290,7 +289,7 @@ namespace RPGNet
                         Labels.Add(getScope());
                         Build = Interpreter.StringBuilder(Pieces, 1, Pieces.Length);
                         Proc.Expression(Build);
-                        Proc.addIL("brfalse.s " + getScope()); Scope++;
+                        Proc.addIL("brfalse " + getScope()); Scope++;
 
                         Proc.addGoto(forElse);
                         break;
@@ -306,10 +305,10 @@ namespace RPGNet
                         Scope++;
 
                         Proc.Expression(Build);
-                        Proc.addIL("brfalse.s " + getScope());
+                        Proc.addIL("brfalse " + getScope());
                         break;
                     case "ENDDO":
-                        Proc.addIL("br.s " + getLastScope());
+                        Proc.addIL("br " + getLastScope());
                         Proc.addGoto(getScope());
                         Labels.Add(getScope());
                         Scope++;
@@ -326,7 +325,7 @@ namespace RPGNet
                         break;
                     case "ON-ERROR":
                         Labels.Add(getScope());
-                        Proc.addIL("leave.s " + getScope());
+                        Proc.addIL("leave " + getScope());
                         Scope++;
                         Proc.addIL("}");
 
@@ -337,7 +336,7 @@ namespace RPGNet
                         break;
                     case "ENDMON":
                         Labels.Add(getScope());
-                        Proc.addIL("leave.s " + getScope());
+                        Proc.addIL("leave " + getScope());
                         Scope++;
                         Proc.addIL("}");
                         Proc.addGoto(getLastScope());

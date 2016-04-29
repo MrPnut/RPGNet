@@ -130,8 +130,9 @@ namespace RPGNet
         }
         public void addNot()
         {
-            addIL("ldc.i4.0");
-            addIL("ceq");
+            //addIL("ldc.i4.0");
+            //addIL("ceq");
+            addIL("not");
         }
         public void addGoto(String GOTO = "")
         {
@@ -206,7 +207,7 @@ namespace RPGNet
                         NOT = !NOT;
                         break;
                     case "=":
-                    case "!=":
+                    case "<>":
                     case ">":
                     case "<":
                     case "<=":
