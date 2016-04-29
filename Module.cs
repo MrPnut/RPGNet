@@ -86,7 +86,15 @@ namespace RPGNet
         }
         public static Piece.Type getDSFieldType(String Template, String Field)
         {
-            return DSTemplates[Template].getType(Field);
+            if (DSTemplates.ContainsKey(Template))
+            {
+                return DSTemplates[Template].getType(Field);
+            }
+            else
+            {
+                Errors.throwError("Template '" + Template + "' does not exist.");
+                return Piece.Type.Void;
+            }
         }
         #endregion
 
@@ -134,7 +142,6 @@ namespace RPGNet
                             {
                                 forKey = Interpreter.parseCall(keyword.getValue());
                             }
-                            Console.WriteLine("KEYWORD: " + keyword.getValue().ToUpper());
                             switch (keyword.getValue().ToUpper())
                             {
                                 case "TEMPLATE":
@@ -146,7 +153,6 @@ namespace RPGNet
                                     {
                                         case "LIKEDS":
                                             //Define DS in local pgm
-                                            Console.WriteLine("LIkEDS!!");
                                             Proc.addDS(Pieces[1].getValue(), forKey[1]);
                                             break;
                                     }
@@ -368,7 +374,7 @@ namespace RPGNet
                             if (Pieces[0].getInstance() == Piece.Type.DataStructure)
                             {
                                 forKey = Pieces[0].getValue().Split('.');
-                                Proc.loadItem(new Piece(forKey[0]));
+                                Proc.addIL("ldloca " + forKey[0]);
                                 Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length), Module.getDSFieldType(Proc.getDSTemplate(forKey[0]), forKey[1])); //everything after the op
                                 Proc.addIL("stfld " + RPG.getCILType(Module.getDSFieldType(Proc.getDSTemplate(forKey[0]), forKey[1])) + " " + Module.getName() + ".Program/" + Proc.getDSTemplate(forKey[0]) + "::" + forKey[1]);
                             }

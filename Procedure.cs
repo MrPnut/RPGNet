@@ -67,7 +67,15 @@ namespace RPGNet
         }
         public String getDSTemplate(String Var)
         {
-            return  DataStructures[Var];
+            if (DataStructures.ContainsKey(Var))
+            {
+                return DataStructures[Var];
+            }
+            else
+            {
+                Errors.throwError("Data structure '" + Var + "' does not exist in procedure '" + ProcName + "'.");
+                return "";
+            }
         }
         public void addVariable(String Name, Piece.Type Type, int Dim = 0)
         {
@@ -88,6 +96,10 @@ namespace RPGNet
             else if (Module.globalExists(Name))
             {
                 return Module.getGlobalType(Name);
+            }
+            else if (DataStructures.ContainsKey(Name))
+            {
+                return Piece.Type.DataStructure;
             }
             else
             {
@@ -409,7 +421,7 @@ namespace RPGNet
             {
                 addIL("stsfld " + Module.getGlobalTypeCIL(Var) + " " + Module.getName() + ".Program::" + Var);
             }
-            else if (Variables.ContainsKey(Var))
+            else if (Variables.ContainsKey(Var) || DataStructures.ContainsKey(Var))
             {
                 addIL("stloc " + Var);
             }
@@ -464,7 +476,8 @@ namespace RPGNet
                     else if (DataStructures.ContainsKey(Item.getValue()))
                     {
                         MaxStack = Math.Max(2, MaxStack);
-                        addIL("ldloca " + Item.getValue());
+                        Errors.throwNotice("Move object");
+                        addIL("ldloc " + Item.getValue());
                     }
                     else if (Variables.ContainsKey(Item.getValue()))
                     {

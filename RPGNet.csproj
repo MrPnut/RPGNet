@@ -42,7 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
-    <Compile Include="DataStructure.cs" />
+    <Compile Include="Types\DataStructure.cs" />
     <Compile Include="Errors.cs" />
     <Compile Include="Interpreter.cs" />
     <Compile Include="Module.cs" />
@@ -51,7 +51,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Piece.cs" />
     <Compile Include="RPG.cs" />
-    <Compile Include="Variable.cs" />
+    <Compile Include="Types\Variable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
