@@ -68,7 +68,7 @@ namespace RPGNet
 
         #region DataStructure methods
         private static Dictionary<String, DataStructure> DSTemplates = new Dictionary<string, DataStructure>();
-        public static void newDSTemp(String Name)
+        public static void newDSTemp(String Name, Boolean Qualified)
         {
             if (DSTemplates.ContainsKey(Name))
             {
@@ -77,12 +77,16 @@ namespace RPGNet
             else
             {
                 Errors.throwNotice("Creating new data strucure template: " + Name);
-                DSTemplates.Add(Name, new DataStructure());
+                DSTemplates.Add(Name, new DataStructure(Qualified));
             }
         }
         public static void DSaddValue(String DS, String Name, Piece.Type Type)
         {
             DSTemplates[DS].addVar(Name, Type);
+        }
+        public static Boolean isDSQualified(String Name)
+        {
+            return DSTemplates[Name].isQualified();
         }
         public static Piece.Type getDSFieldType(String Template, String Field)
         {
@@ -95,6 +99,10 @@ namespace RPGNet
                 Errors.throwError("Template '" + Template + "' does not exist.");
                 return Piece.Type.Void;
             }
+        }
+        public static String[] getDSFields(String Name)
+        {
+            return DSTemplates[Name].getVars();
         }
         #endregion
 
@@ -119,12 +127,14 @@ namespace RPGNet
             Procedure Proc = null;
             Piece[] Pieces;
             Piece[] Build;
+            Boolean QualifiedDS = false;
 
             String dsname;
             String[] forKey = new string[0];
             int forDim = 0;
             String forElse, forInz = "";
             dsname = "";
+            QualifiedDS = false;
             foreach (String Part in Interpreter.toParts(Code))
             {
                 forDim = 0;
@@ -144,8 +154,11 @@ namespace RPGNet
                             }
                             switch (keyword.getValue().ToUpper())
                             {
+                                case "QUALIFIED":
+                                    QualifiedDS = true;
+                                    break;
                                 case "TEMPLATE":
-                                    newDSTemp(Pieces[1].getValue());
+                                    newDSTemp(Pieces[1].getValue(), QualifiedDS);
                                     dsname = Pieces[1].getValue();
                                     break;
                                 default:
@@ -163,6 +176,7 @@ namespace RPGNet
 
                     case "END-DS":
                         dsname = "";
+                        QualifiedDS = false;
                         break;
 
                     case "DCL-PR": //DCL-PR Procname ReturnType
@@ -188,6 +202,7 @@ namespace RPGNet
                         }
                         else
                         {
+                            //Adds template value
                             DSaddValue(dsname, Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
                         }
                         break;
@@ -372,6 +387,7 @@ namespace RPGNet
                             }
                             if (Pieces[0].getInstance() == Piece.Type.DataStructure)
                             {
+                                Proc.setStack(2);
                                 forKey = Pieces[0].getValue().Split('.');
                                 Proc.addIL("ldloca " + forKey[0]);
                                 Proc.Expression(Interpreter.StringBuilder(Pieces, 2, Pieces.Length), Module.getDSFieldType(Proc.getDSTemplate(forKey[0]), forKey[1])); //everything after the op
@@ -398,15 +414,18 @@ namespace RPGNet
 
             foreach (var DS in DSTemplates)
             {
-                Out.Add("");
-                Out.Add("//Definition of " + DS.Key + " data structure template");
-                Out.Add(".class sequential ansi sealed nested public beforefieldinit " + DS.Key + " extends [mscorlib]System.ValueType");
-                Out.Add("{");
-                foreach(String Var in DS.Value.getVars())
+                if (isDSQualified(DS.Key))
                 {
-                    Out.Add(".field public " + RPG.getCILType(DS.Value.getType(Var)) + " " + Var);
+                    Out.Add("");
+                    Out.Add("//Definition of " + DS.Key + " data structure template");
+                    Out.Add(".class sequential ansi sealed nested public beforefieldinit " + DS.Key + " extends [mscorlib]System.ValueType");
+                    Out.Add("{");
+                    foreach (String Var in DS.Value.getVars())
+                    {
+                        Out.Add(".field public " + RPG.getCILType(DS.Value.getType(Var)) + " " + Var);
+                    }
+                    Out.Add("}");
                 }
-                Out.Add("}");
             }
             Out.Add("");
             Out.Add("//Global variables");

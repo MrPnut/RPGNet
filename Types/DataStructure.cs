@@ -9,10 +9,12 @@ namespace RPGNet
     class DataStructure
     {
         private Dictionary<String, Piece.Type> Variables;
+        private Boolean Qualified;
 
-        public DataStructure()
+        public DataStructure(Boolean qualified)
         {
             Variables = new Dictionary<String, Piece.Type>();
+            Qualified = qualified;
         }
 
         public void addVar(String Name, Piece.Type Var)
@@ -20,6 +22,10 @@ namespace RPGNet
             Variables.Add(Name, Var);
         }
 
+        public Boolean isQualified()
+        {
+            return Qualified;
+        }
         public string[] getVars()
         {
             return Variables.Keys.ToArray();

@@ -32,6 +32,11 @@ namespace RPGNet
             return ProcName;
         }
 
+        public void setStack(int Value)
+        {
+            MaxStack = Math.Max(MaxStack, Value);
+        }
+
         public void setReturn(Piece.Type Type)
         {
             ReturnType = Type;
@@ -63,7 +68,18 @@ namespace RPGNet
         }
         public void addDS(String Name, String DSTemp)
         {
-            DataStructures.Add(Name, DSTemp);
+            if (Module.isDSQualified(DSTemp))
+            {
+                DataStructures.Add(Name, DSTemp);
+            }
+            else
+            {
+                Errors.throwNotice("Data structure '" + Name + "' is not qualified.");
+                foreach(string field in Module.getDSFields(DSTemp))
+                {
+                    addVariable(field, Module.getDSFieldType(DSTemp, field));
+                }
+            }
         }
         public String getDSTemplate(String Var)
         {
@@ -197,8 +213,8 @@ namespace RPGNet
         {
             Boolean NOT = false;
             String OP = "";
-
-            MaxStack = Math.Max(In.Length, MaxStack);
+            
+            setStack(In.Length);
             foreach (Piece Token in In)
             {
                 switch (Token.getValue())
@@ -277,8 +293,8 @@ namespace RPGNet
             {
                 if (Parm.Trim() != "") Pieces.Add(new Piece(Parm));
             }
-
-            MaxStack = Math.Max(Pieces.Count, MaxStack);
+            
+            setStack(Pieces.Count);
 
             addIL("// " + Name + "(" + InsideBrackets + ") ---------");
             Name = Name.Substring(1); //Rid of the %
@@ -368,7 +384,7 @@ namespace RPGNet
 
             if (Variables.ContainsKey(Name)) //Array check
             {
-                MaxStack = Math.Max(1, MaxStack);
+                setStack(1);
                 if (Variables[Name].getDim() > 0)
                 {
                     loadItem(new Piece(Name));
@@ -403,7 +419,7 @@ namespace RPGNet
                         loadItem(new Piece(Parm));
                     }
                 }
-                MaxStack = Math.Max(PassedIn.Length, MaxStack);
+                setStack(PassedIn.Length);
 
                 addIL("call " + ReturnCIL + " " + Module.getName() + ".Program::" + Name + " (");
                 List<String> Params = new List<String>();
@@ -476,7 +492,7 @@ namespace RPGNet
                     }
                     else if (DataStructures.ContainsKey(Item.getValue()))
                     {
-                        MaxStack = Math.Max(2, MaxStack);
+                        setStack(1);
                         Errors.throwNotice("Move object");
                         addIL("ldloc " + Item.getValue());
                     }
