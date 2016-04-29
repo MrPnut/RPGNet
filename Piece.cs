@@ -11,13 +11,14 @@ namespace RPGNet
         public static String[] Operators = { "+", "-", "/", "*", "=", "<>", ">", "<", ">=", "<=", "NOT" };
         public enum Type
         {
-            Operator, BIF, Call, Variable, Varchar, Packed, Int, Indicator, Error, Void
+            Operator, BIF, Call, Variable, DataStructure, Varchar, Packed, Int, Indicator, Error, Void
             /*
              * Piece.Type descriptions
              *  - Operator can be any value from the Operators String array
              *  - A BIF is a piece that starts with % and ends with ) which will do a 'lower level' call
              *  - A call is currently a piece that ends with ) which calls procedures.. will eventually support arrays
              *  - Variable is a piece that indicates that the value may represent a variable
+             *  - DataStructure is a struct
              *  - Varchar is the type of the value passed in
              *  - Int is the type of the value passed in
              *  - Indicator is the type of value passed in
@@ -78,6 +79,7 @@ namespace RPGNet
                 Boolean isVar = false;
                 Boolean isInt = false;
                 Boolean isPkd = false;
+                Boolean isDS  = false;
                 foreach (char c in Val.ToCharArray())
                 {
                     if (Char.IsDigit(c))
@@ -87,7 +89,16 @@ namespace RPGNet
                     }
                     if (c == '.')
                     {
-                        isPkd = true;
+                        if (isVar == true)
+                        {
+                            //Is data structure
+                            isDS = true;
+                        }
+                        else
+                        {
+                            isPkd = true;
+                        }
+                        
                         continue;
                     }
                     if (Char.IsLetter(c))
@@ -108,8 +119,16 @@ namespace RPGNet
                     }
                     else
                     {
-                        _Type = Type.Variable;
+                        if (isDS == true)
+                        {
+                            _Type = Type.DataStructure;
+                        }
+                        else
+                        {
+                            _Type = Type.Variable;
+                        }
                     }
+                    
                 }
                 else if (isInt == true)
                 {

@@ -16,11 +16,27 @@ namespace RPGNet
             if (CodeFile == "") return;
             String Code = Interpreter.getContent(CodeFile);
             String Name = new FileInfo(CodeFile).Name; Name = Name.Substring(0, Name.LastIndexOf('.'));
-            String Compiler = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\ilasm.exe";
-            
+            Config Info = new Config("Config.cfg");
+
             Module.Run(Name, Code);
             File.WriteAllLines(Name + ".il", Module.getCode());
-            Process.Start(Compiler, '"' + Environment.CurrentDirectory + "\\" + Name + '"');
+
+            String Compiler = Info.getConf("ilasm");
+
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Process compiler = new Process();
+            compiler.StartInfo.FileName = Compiler;
+            compiler.StartInfo.Arguments = '"' + Environment.CurrentDirectory + "\\" + Name + '"';
+            compiler.StartInfo.UseShellExecute = false;
+            compiler.StartInfo.RedirectStandardOutput = true;
+            compiler.Start();
+            Console.WriteLine(compiler.StandardOutput.ReadToEnd());
+            compiler.WaitForExit();
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("End of compile.");
+            Console.WriteLine("Exit code: " + compiler.ExitCode);
+
             Console.ReadLine();
         }
     }

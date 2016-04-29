@@ -66,6 +66,30 @@ namespace RPGNet
         }
         #endregion
 
+        #region DataStructure methods
+        private static Dictionary<String, DataStructure> DSTemplates = new Dictionary<string, DataStructure>();
+        public static void newDSTemp(String Name)
+        {
+            if (DSTemplates.ContainsKey(Name))
+            {
+                Errors.throwError("Cannot re-define a data structure " + Name);
+            }
+            else
+            {
+                Errors.throwNotice("Creating new data strucure template: " + Name);
+                DSTemplates.Add(Name, new DataStructure());
+            }
+        }
+        public static void DSaddValue(String DS, String Name, Piece.Type Type)
+        {
+            DSTemplates[DS].addVar(Name, Type);
+        }
+        public static Piece.Type getDSFieldType(String Template, String Field)
+        {
+            return DSTemplates[Template].getType(Field);
+        }
+        #endregion
+
         #region Label methods
         public static List<String> Labels = new List<String>();
         private static int Scope = 0;
@@ -88,9 +112,11 @@ namespace RPGNet
             Piece[] Pieces;
             Piece[] Build;
 
-            String[] forKey;
+            String dsname;
+            String[] forKey = new string[0];
             int forDim = 0;
             String forElse, forInz = "";
+            dsname = "";
             foreach (String Part in Interpreter.toParts(Code))
             {
                 forDim = 0;
@@ -100,6 +126,38 @@ namespace RPGNet
                 if (Proc != null) Proc.addIL("//" + Part);
                 switch (Pieces[0].getValue().ToUpper())
                 {
+                    case "DCL-DS": //Dcl-Ds DSNAME [template] [likeDS(templatename)]
+                        Build = Interpreter.StringBuilder(Pieces, 2, Pieces.Length);
+                        foreach (Piece keyword in Build)
+                        {
+                            if (keyword.getValue().Contains("("))
+                            {
+                                forKey = Interpreter.parseCall(keyword.getValue());
+                            }
+                            Console.WriteLine("KEYWORD: " + keyword.getValue().ToUpper());
+                            switch (keyword.getValue().ToUpper())
+                            {
+                                case "TEMPLATE":
+                                    newDSTemp(Pieces[1].getValue());
+                                    dsname = Pieces[1].getValue();
+                                    break;
+                                default:
+                                    switch (forKey[0].ToUpper())
+                                    {
+                                        case "LIKEDS":
+                                            //Define DS in local pgm
+                                            Proc.addDS(Pieces[1].getValue(), forKey[1]);
+                                            break;
+                                    }
+                                    break;
+                            }
+                        }
+                        break;
+
+                    case "END-DS":
+                        dsname = "";
+                        break;
+
                     case "DCL-PR": //DCL-PR Procname ReturnType
                         Proc = new Procedure(Pieces[1].getValue());
                         Proc.setReturn(Piece.getType(Pieces[2].getValue()));
@@ -115,9 +173,16 @@ namespace RPGNet
                     case "DCL-PI": //DCL-PI NAME RETURNTYPE
                         Proc.setReturn(Piece.getType(Pieces[2].getValue()));
                         break;
-                    case "DCL-PARM": //DCL-PARM NAME, VALUE
-                        //Also used for PR
-                        Proc.addParam(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
+                    case "DCL-PARM": //DCL-PARM NAME VALUE
+                        //Also used for PR and DS
+                        if (dsname == "")
+                        {
+                            Proc.addParam(Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
+                        }
+                        else
+                        {
+                            DSaddValue(dsname, Pieces[1].getValue(), Piece.getType(Pieces[2].getValue()));
+                        }
                         break;
                     case "END-PI":
                         //Has no real use :(
@@ -310,12 +375,31 @@ namespace RPGNet
             Out.Add(".assembly " + Program_Name + " {}");
             Out.Add(".assembly extern mscorlib {}");
             Out.Add(".module " + Program_Name + ".exe");
+            Out.Add("");
 
             Out.Add(".class private auto ansi " + Program_Name + ".Program extends [mscorlib]System.Object {");
+            Out.Add("//========================");
+            Out.Add("");
+
+            foreach (var DS in DSTemplates)
+            {
+                Out.Add("");
+                Out.Add("//Definition of " + DS.Key + " data structure template");
+                Out.Add(".class sequential ansi sealed nested public beforefieldinit " + DS.Key + " extends [mscorlib]System.ValueType");
+                Out.Add("{");
+                foreach(String Var in DS.Value.getVars())
+                {
+                    Out.Add(".field public " + RPG.getCILType(DS.Value.getType(Var)) + " " + Var);
+                }
+                Out.Add("}");
+            }
+            Out.Add("");
+            Out.Add("//Global variables");
             foreach (var Var in Globals)
             {
                 Out.Add(".field private static " + RPG.getCILType(Var.Value.getType()) + " " + Var.Key);
             }
+            Out.Add("");
             foreach (var Proc in Procedures)
             {
                 Out.AddRange(Proc.Value.getIL());

@@ -41,6 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config.cs" />
+    <Compile Include="DataStructure.cs" />
     <Compile Include="Errors.cs" />
     <Compile Include="Interpreter.cs" />
     <Compile Include="Module.cs" />

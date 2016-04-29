@@ -8,16 +8,20 @@ namespace RPGNet
 {
     class Procedure
     {
+        private int MaxStack;
         private String ProcName;
         private Dictionary<String, Piece.Type> Parameters;
+        private Dictionary<String, String> DataStructures;
         private Dictionary<String, Variable> Variables;
         private Piece.Type ReturnType;
         private List<String> ILCode;
 
         public Procedure(String Name)
         {
+            MaxStack = 0;
             ProcName = Name;
             Parameters = new Dictionary<String, Piece.Type>();
+            DataStructures = new Dictionary<string, string>();
             Variables = new Dictionary<String, Variable>();
             ReturnType = Piece.Type.Void;
             ILCode = new List<String>();
@@ -57,7 +61,10 @@ namespace RPGNet
             }
             return Out.ToArray();
         }
-
+        public void addDS(String Name, String DSTemp)
+        {
+            DataStructures.Add(Name, DSTemp);
+        }
         public void addVariable(String Name, Piece.Type Type, int Dim = 0)
         {
             if (Variables.ContainsKey(Name))
@@ -141,12 +148,16 @@ namespace RPGNet
 
             Vars.Clear();
             if (getName() == Module.getName()) Out.Add(".entrypoint");
-            Out.Add(".maxstack " + Variables.Count);
+            Out.Add(".maxstack " + MaxStack.ToString());
             Out.Add(".locals init (");
             foreach (var Varu in Variables)
             {
                 isArray = (Varu.Value.getDim() > 0);
                 Vars.Add(RPG.getCILType(Varu.Value.getType()) + (isArray ? "[]" : "") + " " + Varu.Key);
+            }
+            foreach (var DS in DataStructures)
+            {
+                Vars.Add("valuetype " + Module.getName() + ".Program/" + DS.Value + " " + DS.Key);
             }
             Out.Add(String.Join(", ", Vars));
             Out.Add(")");
@@ -163,6 +174,7 @@ namespace RPGNet
             Boolean NOT = false;
             String OP = "";
 
+            MaxStack = Math.Max(In.Length, MaxStack);
             foreach (Piece Token in In)
             {
                 switch (Token.getValue())
@@ -241,6 +253,8 @@ namespace RPGNet
             {
                 if (Parm.Trim() != "") Pieces.Add(new Piece(Parm));
             }
+
+            MaxStack = Math.Max(Pieces.Count, MaxStack);
 
             addIL("// " + Name + "(" + InsideBrackets + ") ---------");
             Name = Name.Substring(1); //Rid of the %
@@ -330,6 +344,7 @@ namespace RPGNet
 
             if (Variables.ContainsKey(Name)) //Array check
             {
+                MaxStack = Math.Max(1, MaxStack);
                 if (Variables[Name].getDim() > 0)
                 {
                     loadItem(new Piece(Name));
@@ -340,6 +355,7 @@ namespace RPGNet
                 else
                 {
                     //Error?
+                    Errors.throwError("Tried loading element from array that doesn't exist: " + InsideBrackets);
                 }
             }
             else
@@ -363,6 +379,7 @@ namespace RPGNet
                         loadItem(new Piece(Parm));
                     }
                 }
+                MaxStack = Math.Max(PassedIn.Length, MaxStack);
 
                 addIL("call " + ReturnCIL + " " + Module.getName() + ".Program::" + Name + " (");
                 List<String> Params = new List<String>();
@@ -385,6 +402,10 @@ namespace RPGNet
             {
                 addIL("stloc " + Var);
             }
+            else if (Var.Contains('.')) //DS
+            {
+                forVar = Var.Split('.'); 
+            }
             else if (Var.Contains("(") && Var.Contains(")"))
             {
                 forVar = Interpreter.parseCall(Var);
@@ -397,7 +418,6 @@ namespace RPGNet
         public String loadItem(Piece Item)
         {
             String[] forCall;
-            String Value = "", Name = "", InsideBrackets = "";
             switch (Item.getInstance())
             {
                 case Piece.Type.Indicator:
@@ -420,10 +440,19 @@ namespace RPGNet
                 case Piece.Type.Varchar:
                     addIL("ldstr " + Item.getValue());
                     break;
+                case Piece.Type.DataStructure:
+                    forCall = Item.getValue().Split('.');
+                    addIL("ldloc " + forCall[0]);
+                    addIL("ldfld " + Module.getDSFieldType(DataStructures[forCall[0]], forCall[1]) + " " + Module.getName() + ".Program/" + DataStructures[forCall[0]] + "::" + forCall[1]);
+                    break;
                 case Piece.Type.Variable:
                     if (Parameters.ContainsKey(Item.getValue()))
                     {
                         addIL("ldarg " + Item.getValue());
+                    }
+                    else if (DataStructures.ContainsKey(Item.getValue()))
+                    {
+                        addIL("ldloca " + Item.getValue());
                     }
                     else if (Variables.ContainsKey(Item.getValue()))
                     {
