@@ -288,6 +288,7 @@ namespace RPGNet
         }
         public void doBIF(String Name, String InsideBrackets)
         {
+            String[] forCall;
             List<Piece> Pieces = new List<Piece>();
             foreach (String Parm in InsideBrackets.Split(':'))
             {
@@ -305,6 +306,10 @@ namespace RPGNet
                     if (Pieces[0].getValue().EndsWith(")")) Pieces[0] = new Piece(Interpreter.parseCall(Pieces[0].getValue())[0]);
                     switch (Pieces[0].getInstance())
                     {
+                        case Piece.Type.DataStructure:
+                            forCall = Pieces[0].getValue().Split('.');
+                            addIL("call string [mscorlib]System.Convert::ToString(" + RPG.getCILType(Module.getDSFieldType(DataStructures[forCall[0]], forCall[1])) + ")");
+                            break;
                         case Piece.Type.Variable:
                             addIL("call string [mscorlib]System.Convert::ToString(" + RPG.getCILType(getVarType(Pieces[0].getValue())) + ")");
                             break;
@@ -318,6 +323,10 @@ namespace RPGNet
                     if (Pieces[0].getValue().EndsWith(")")) Pieces[0] = new Piece(Interpreter.parseCall(Pieces[0].getValue())[0]);
                     switch (Pieces[0].getInstance())
                     {
+                        case Piece.Type.DataStructure:
+                            forCall = Pieces[0].getValue().Split('.');
+                            addIL("call string [mscorlib]System.Convert::ToString(" + RPG.getCILType(Module.getDSFieldType(DataStructures[forCall[0]], forCall[1])) + ")");
+                            break;
                         case Piece.Type.Variable:
                             addIL("call int32 [mscorlib]System.Convert::ToInt32(" + RPG.getCILType(getVarType(Pieces[0].getValue())) + ")");
                             break;
