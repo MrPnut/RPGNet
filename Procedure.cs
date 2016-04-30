@@ -239,10 +239,24 @@ namespace RPGNet
                         switch (OP)
                         {
                             case "=":
-                                addIL("ceq");
+                                if (TypeOut == Piece.Type.Varchar)
+                                {
+                                    addIL("call bool System.String::Equals(string, string)");
+                                }
+                                else
+                                {
+                                    addIL("ceq");
+                                }
                                 break;
                             case "<>":
-                                addIL("ceq");
+                                if (TypeOut == Piece.Type.Varchar)
+                                {
+                                    addIL("call bool System.String::Equals(string, string)");
+                                }
+                                else
+                                {
+                                    addIL("ceq");
+                                }
                                 addNot();
                                 break;
                             case ">":

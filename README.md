@@ -8,9 +8,10 @@ Since this is a free-time-project only, it won't be worked on as much as I like.
 RPGNet is actually in a decent state at the moment. A current list of features would include (in no particular order):
 * Build-In Functions (not all of them)
 * Variables
-* Procedures
 * Global/Local variables
 * Arrays
+* Data structures
+* Procedures
 * Totally free-format
 * Error catching (Monitoring)
 * Embedded SQL (not commited, as a work in progress)
